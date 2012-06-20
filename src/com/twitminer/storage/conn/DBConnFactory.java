@@ -5,15 +5,15 @@ import com.twitminer.dao.DAOFactory;
 
 public abstract class DBConnFactory {
 	
-	private static String username;
-	private static String password;
+	private static String username = "twitminer";
+	private static String password = "p@ssword";
 	private static String datasource;
 	private static String driverName;
 	
 	public static DBConnFactory getInstance(int dataSrc) {
 		switch(dataSrc) {
 		case DAOFactory.MYSQL:
-			datasource = "jdbc/tweet_schema";
+			datasource = "jdbc:mysql//localhost/twitter";
 			return new MySQLConnImpl();
 			
 		}

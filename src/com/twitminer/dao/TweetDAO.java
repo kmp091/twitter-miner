@@ -5,8 +5,8 @@ import com.twitminer.beans.Tweet;
 public abstract class TweetDAO {
 
 	public abstract Tweet getTweetByID(int tweetId);
-	public abstract Tweet getTweetByUserID(int userId);
-	public abstract Tweet insertTweet(Tweet newTweet);
-	public abstract Tweet deleteTweetByID(int tweetId);
+	public abstract Tweet[] getTweetsByUserID(int userId);
+	public abstract void insertTweet(Tweet newTweet);
+	public abstract void deleteTweetByID(int tweetId);
 	
 }
