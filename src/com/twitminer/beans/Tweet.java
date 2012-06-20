@@ -4,8 +4,8 @@ import java.util.Calendar;
 
 public class Tweet {
 
-	private int tweetId;
-	private int userId;
+	private long tweetId;
+	private long userId;
 	private String text;
 	private Calendar dateCreated;
 	private int emotionId;
@@ -14,7 +14,7 @@ public class Tweet {
 		
 	}
 	
-	public Tweet (int tweetId, int userId, String text, Calendar dateCreated) {
+	public Tweet (long tweetId, long userId, String text, Calendar dateCreated) {
 		this();
 		this.tweetId = tweetId;
 		this.userId = userId;
@@ -22,28 +22,28 @@ public class Tweet {
 		this.dateCreated = dateCreated;
 	}
 	
-	public Tweet (int tweetId, int userId, String text, Calendar dateCreated, int emotionId) {
+	public Tweet (long tweetId, long userId, String text, Calendar dateCreated, int emotionId) {
 		this(tweetId, userId, text, dateCreated);
 		this.emotionId = emotionId;
 	}
 	
-	public Tweet (int tweetId, int userId, String text, Calendar dateCreated, Emotion emotion) {
+	public Tweet (long tweetId, long userId, String text, Calendar dateCreated, Emotion emotion) {
 		this(tweetId, userId, text, dateCreated, emotion.getEmotionId());
 	}
 	
-	public int getTweetId() {
+	public long getTweetId() {
 		return tweetId;
 	}
 	
-	public void setTweetId(int tweetId) {
+	public void setTweetId(long tweetId) {
 		this.tweetId = tweetId;
 	}
 	
-	public int getUserId() {
+	public long getUserId() {
 		return userId;
 	}
 	
-	public void setUserId(int userId) {
+	public void setUserId(long userId) {
 		this.userId = userId;
 	}
 	

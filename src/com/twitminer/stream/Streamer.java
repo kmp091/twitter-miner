@@ -1,5 +1,11 @@
 package com.twitminer.stream;
 
+import java.util.Calendar;
+
+import com.twitminer.beans.Tweet;
+import com.twitminer.dao.DAOFactory;
+import com.twitminer.dao.TweetDAO;
+
 import twitter4j.FilterQuery;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
@@ -12,6 +18,13 @@ import twitter4j.conf.ConfigurationBuilder;
 public class Streamer {
 	
 	TwitterStream twitStream;
+	
+	public static int HAPPY = 1;
+	public static int SAD = 2;
+	public static int DISGUST = 3;
+	public static int SURPRISE = 4;
+	
+	private TweetDAO tweetDAO;
 	
 	StatusListener statusListener = new StatusListener(){
 
@@ -37,6 +50,12 @@ public class Streamer {
 		public void onStatus(Status status) {
 			// TODO Auto-generated method stub
 			System.out.println(status.getText());
+			//store on db code
+			Calendar cal = Calendar.getInstance();
+			cal.setTime(status.getCreatedAt());
+			Tweet store = new Tweet(status.getId(), status.getUser().getId(), status.getText(), cal, HAPPY);
+			
+			tweetDAO.insertTweet(store);
 		}
 
 		@Override
@@ -54,6 +73,9 @@ public class Streamer {
 		
 		twitStream = new TwitterStreamFactory(cb.build()).getInstance(token);
 		twitStream.addListener(statusListener);
+		
+		DAOFactory daoFactory = DAOFactory.getInstance(DAOFactory.MYSQL);
+		tweetDAO = daoFactory.getTweetDAO();
 	}
 	
 	public void filter(String... filterString) {

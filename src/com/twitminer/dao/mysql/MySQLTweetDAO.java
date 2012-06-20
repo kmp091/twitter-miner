@@ -19,12 +19,12 @@ public class MySQLTweetDAO extends TweetDAO {
 	private final String tableName = "tweet";
 	
 	@Override
-	public Tweet getTweetByID(int tweetId) {
+	public Tweet getTweetByID(long tweetId) {
 		try {
 			Connection conn = DBConnFactory.getInstance(DAOFactory.MYSQL).getConnection();
 			
 			PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM " + tableName + " WHERE tweet_id = ?");
-			pstmt.setInt(1, tweetId);
+			pstmt.setLong(1, tweetId);
 			
 			ResultSet rs = pstmt.executeQuery();
 			
@@ -43,14 +43,14 @@ public class MySQLTweetDAO extends TweetDAO {
 	}
 
 	@Override
-	public Tweet[] getTweetsByUserID(int userId) {
+	public Tweet[] getTweetsByUserID(long userId) {
 		List<Tweet> tweets = new ArrayList<Tweet>();
 		
 		try {
 			Connection conn = DBConnFactory.getInstance(DAOFactory.MYSQL).getConnection();
 			
 			PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM " + tableName + " WHERE userId = ?");
-			pstmt.setInt(1, userId);
+			pstmt.setLong(1, userId);
 			
 			ResultSet rs = pstmt.executeQuery();
 			
@@ -74,8 +74,8 @@ public class MySQLTweetDAO extends TweetDAO {
 			Connection conn = DBConnFactory.getInstance(DAOFactory.MYSQL).getConnection();
 			
 			PreparedStatement pstmt = conn.prepareStatement("INSERT (tweet_id, userId, textMSG, created_AT, emoId) INTO " + tableName + " VALUES (?,?,?,?,?)");
-			pstmt.setInt(1, newTweet.getTweetId());
-			pstmt.setInt(2, newTweet.getUserId());
+			pstmt.setLong(1, newTweet.getTweetId());
+			pstmt.setLong(2, newTweet.getUserId());
 			pstmt.setString(3, newTweet.getText());
 			pstmt.setTimestamp(4, new Timestamp(newTweet.getDateCreated().getTimeInMillis()));
 			pstmt.setInt(5, newTweet.getEmotionId());
@@ -90,12 +90,12 @@ public class MySQLTweetDAO extends TweetDAO {
 	}
 
 	@Override
-	public void deleteTweetByID(int tweetId) {
+	public void deleteTweetByID(long tweetId) {
 		try {
 			Connection con = DBConnFactory.getInstance(DAOFactory.MYSQL).getConnection();
 			
 			PreparedStatement pstmt = con.prepareStatement("DELETE FROM " + tableName + " WHERE tweet_id = ?");
-			pstmt.setInt(1, tweetId);
+			pstmt.setLong(1, tweetId);
 			
 			pstmt.execute();
 			
