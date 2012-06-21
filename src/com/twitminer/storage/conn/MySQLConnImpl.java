@@ -12,6 +12,9 @@ public class MySQLConnImpl extends DBConnFactory {
 	@Override
 	public Connection getConnection() {
 		try {
+			//System.out.println("Driver name:" + MySQLConnImpl.getDriverName());
+			//System.out.println("Data source:" + MySQLConnImpl.getDatasource());
+			
 			Class.forName(MySQLConnImpl.getDriverName()).newInstance();
 			
 			return DriverManager.getConnection(getDatasource(), getUsername(), getPassword());

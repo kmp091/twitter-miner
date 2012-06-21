@@ -73,7 +73,7 @@ public class MySQLTweetDAO extends TweetDAO {
 		try {
 			Connection conn = DBConnFactory.getInstance(DAOFactory.MYSQL).getConnection();
 			
-			PreparedStatement pstmt = conn.prepareStatement("INSERT (tweet_id, userId, textMSG, created_AT, emoId) INTO " + tableName + " VALUES (?,?,?,?,?)");
+			PreparedStatement pstmt = conn.prepareStatement("INSERT INTO " + tableName + " (tweet_id, userId, textMSG, created_AT, emoId) VALUES (?,?,?,?,?)");
 			pstmt.setLong(1, newTweet.getTweetId());
 			pstmt.setLong(2, newTweet.getUserId());
 			pstmt.setString(3, newTweet.getText());

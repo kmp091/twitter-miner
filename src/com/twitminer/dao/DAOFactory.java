@@ -15,5 +15,7 @@ public abstract class DAOFactory {
 	
 	public abstract EmotionDAO getEmotionDAO();
 	public abstract TweetDAO getTweetDAO();
+	public abstract EmoticonDAO getEmoticonDAO();
+	public abstract StopWordDAO getStopWordDAO();
 	
 }

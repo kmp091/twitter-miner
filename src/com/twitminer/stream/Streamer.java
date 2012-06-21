@@ -4,6 +4,7 @@ import java.util.Calendar;
 
 import com.twitminer.beans.Tweet;
 import com.twitminer.dao.DAOFactory;
+import com.twitminer.dao.EmotionDAO;
 import com.twitminer.dao.TweetDAO;
 
 import twitter4j.FilterQuery;
@@ -19,12 +20,11 @@ public class Streamer {
 	
 	TwitterStream twitStream;
 	
-	public static int HAPPY = 1;
-	public static int SAD = 2;
-	public static int DISGUST = 3;
-	public static int SURPRISE = 4;
-	
 	private TweetDAO tweetDAO;
+	
+	private int curEmotion = EmotionDAO.HAPPY;
+	
+	private int tweetCounter = 0;
 	
 	StatusListener statusListener = new StatusListener(){
 
@@ -53,9 +53,11 @@ public class Streamer {
 			//store on db code
 			Calendar cal = Calendar.getInstance();
 			cal.setTime(status.getCreatedAt());
-			Tweet store = new Tweet(status.getId(), status.getUser().getId(), status.getText(), cal, HAPPY);
+			Tweet store = new Tweet(status.getId(), status.getUser().getId(), status.getText(), cal, curEmotion);
 			
 			tweetDAO.insertTweet(store);
+			
+			tweetCounter++;
 		}
 
 		@Override
@@ -78,10 +80,39 @@ public class Streamer {
 		tweetDAO = daoFactory.getTweetDAO();
 	}
 	
+	public void filterAndAnnotate(int emotionId, String... filterString) {
+		this.curEmotion = emotionId;
+		this.filter(filterString);
+	}
+	
 	public void filter(String... filterString) {
 		FilterQuery filterQ = new FilterQuery();
 		filterQ.track(filterString);
 		
 		twitStream.filter(filterQ);
+		
+	}
+	
+	public void shutdown() {
+		twitStream.shutdown();
+	}
+	
+	public void filterAndAnnotateUntil(int numOfTweets, int emotionId, String... filterString) {
+		this.curEmotion = emotionId;
+		this.filterUntil(numOfTweets, filterString);
+	}
+	
+	public void filterUntil(int numOfTweets, String... filterString) {
+		filter(filterString);
+
+		System.out.println("Don't worry, system hasn't hung: we're just blocking the main thread until");
+		System.out.println("the number of tweets that come in has reached " + numOfTweets);
+		
+		while (tweetCounter <= numOfTweets) {
+			//this'll block the main thread, maybe in the future create a runnable thread
+			System.out.println("Number of streamed tweets so far: " + tweetCounter);
+		}
+		
+		shutdown();
 	}
 }

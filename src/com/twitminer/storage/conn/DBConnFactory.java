@@ -13,7 +13,7 @@ public abstract class DBConnFactory {
 	public static DBConnFactory getInstance(int dataSrc) {
 		switch(dataSrc) {
 		case DAOFactory.MYSQL:
-			datasource = "jdbc:mysql//localhost/twitter";
+			datasource = "jdbc:mysql://localhost/twitter";
 			return new MySQLConnImpl();
 			
 		}
