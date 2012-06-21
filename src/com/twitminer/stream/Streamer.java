@@ -1,9 +1,11 @@
 package com.twitminer.stream;
 
 import java.util.Calendar;
+import java.util.List;
 
 import com.twitminer.beans.Tweet;
 import com.twitminer.dao.DAOFactory;
+import com.twitminer.dao.EmoticonDAO;
 import com.twitminer.dao.EmotionDAO;
 import com.twitminer.dao.TweetDAO;
 
@@ -85,6 +87,14 @@ public class Streamer {
 		this.filter(filterString);
 	}
 	
+	public void filterAndAnnotate(int emotionId) {
+		System.out.println("Hold on to your pants, we're loading some emoticons :)");
+		DAOFactory daos = DAOFactory.getInstance(DAOFactory.MYSQL);
+		EmoticonDAO emo = daos.getEmoticonDAO();
+		List<String> emoticons = emo.getEmoticonStringsByEmotion(emotionId);
+		filter(emoticons.toArray(new String[emoticons.size()]));
+	}
+	
 	public void filter(String... filterString) {
 		FilterQuery filterQ = new FilterQuery();
 		filterQ.track(filterString);
@@ -100,6 +110,20 @@ public class Streamer {
 	public void filterAndAnnotateUntil(int numOfTweets, int emotionId, String... filterString) {
 		this.curEmotion = emotionId;
 		this.filterUntil(numOfTweets, filterString);
+	}
+	
+	/**
+	 * 
+	 * @param numOfTweets
+	 * @param emotionId
+	 */
+	public void filterAndAnnotateUntil(int numOfTweets, int emotionId) {
+		this.curEmotion = emotionId;
+		System.out.println("Hold on to your pants, we're loading some emoticons :)");
+		DAOFactory daos = DAOFactory.getInstance(DAOFactory.MYSQL);
+		EmoticonDAO emo = daos.getEmoticonDAO();
+		List<String> emoticons = emo.getEmoticonStringsByEmotion(emotionId);
+		this.filterUntil(numOfTweets, emoticons.toArray(new String[emoticons.size()]));
 	}
 	
 	public void filterUntil(int numOfTweets, String... filterString) {
