@@ -3,7 +3,6 @@ package com.twitminer;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.List;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -81,7 +80,10 @@ public class Main {
 			Streamer stream = new Streamer(CONSUMER_KEY, CONSUMER_SECRET, accToken);
 			
 			//filter stream with an emotion
-			stream.filterAndAnnotateUntil(5, EmotionDAO.HAPPY);
+			stream.filterAndAnnotateUntil(2000, EmotionDAO.HAPPY);
+			stream.filterAndAnnotateUntil(2000, EmotionDAO.DISGUST);
+			stream.filterAndAnnotateUntil(2000, EmotionDAO.SAD);
+			stream.filterAndAnnotateUntil(2000, EmotionDAO.SURPRISE);
 		}
 		catch (TwitterException e) {
 			System.out.println("You may not be connected to the Internet, or a network error occurred. Please try running the application again.");

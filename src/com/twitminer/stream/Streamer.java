@@ -2,6 +2,8 @@ package com.twitminer.stream;
 
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 import com.twitminer.beans.Tweet;
 import com.twitminer.dao.DAOFactory;
@@ -29,7 +31,7 @@ public class Streamer {
 	
 	private int curEmotion = EmotionDAO.HAPPY;
 	
-	private int tweetCounter = 0;
+	private AtomicInteger tweetCounter = new AtomicInteger(0);
 	
 	StatusListener statusListener = new StatusListener(){
 
@@ -59,13 +61,17 @@ public class Streamer {
 			Calendar cal = Calendar.getInstance();
 			cal.setTime(status.getCreatedAt());
 						
-//			String cleanedTweet = tweetCleaner.something(status.getText());			
+			String cleanedTweet = tweetCleaner.tokenizeAndCleanTweet(status);				
 			
-			Tweet store = new Tweet(status.getId(), status.getUser().getId(), status.getText() /*cleanedTweet*/, cal, curEmotion);
+			if (!cleanedTweet.isEmpty() || Pattern.matches("[a-zA-Z0-9]", cleanedTweet)) {
+				Tweet store = new Tweet(status.getId(), status.getUser().getId(), cleanedTweet, cal, curEmotion);
+				
+				tweetDAO.insertTweet(store);
+				
+				tweetCounter.incrementAndGet();
+				System.out.println("Number of streamed tweets so far: " + tweetCounter);
+			}
 			
-			tweetDAO.insertTweet(store);
-			
-			tweetCounter++;
 		}
 
 		@Override
@@ -76,7 +82,12 @@ public class Streamer {
 		
 	};
 	
+	public Streamer() {
+		tweetCleaner = new TweetCleaner();
+	}
+	
 	public Streamer(String consumerKey, String consumerSecret, AccessToken token) {
+		this();
 		ConfigurationBuilder cb = new ConfigurationBuilder();
 		cb.setOAuthConsumerKey(consumerKey)
 		  .setOAuthConsumerSecret(consumerSecret);
@@ -104,8 +115,6 @@ public class Streamer {
 	public void filter(String... filterString) {
 		FilterQuery filterQ = new FilterQuery();
 		filterQ.track(filterString);
-		
-//		TweetCleaner tweetCleaner = new TweetCleaner();
 		
 		twitStream.filter(filterQ);
 		
@@ -140,10 +149,12 @@ public class Streamer {
 		System.out.println("Don't worry, system hasn't hung: we're just blocking the main thread until");
 		System.out.println("the number of tweets that come in has reached " + numOfTweets);
 		
-		while (tweetCounter <= numOfTweets) {
+		while (tweetCounter.get() <= numOfTweets) {
 			//this'll block the main thread, maybe in the future create a runnable thread
-			System.out.println("Number of streamed tweets so far: " + tweetCounter);
 		}
+		
+		System.out.println("Resetting counter and shutting down");
+		tweetCounter.set(0);
 		
 		shutdown();
 	}
