@@ -56,7 +56,7 @@ public class Streamer {
 
 		@Override
 		public void onStatus(Status status) {
-			if (tweetsRequested != -1 && tweetCounter.get() >= tweetsRequested) {
+			if (tweetsRequested != -1 && tweetCounter.get() > tweetsRequested) {
 				//do nothing
 			}
 			else {

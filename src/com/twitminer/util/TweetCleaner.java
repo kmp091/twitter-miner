@@ -52,12 +52,12 @@ public class TweetCleaner {
 		}
 		
 		//remove RT keyword
-		tweetText = tweetText.replaceAll("rt : ", "");
-		tweetText = tweetText.replaceAll("rt", "");
+		tweetText = tweetText.replaceAll("RT : ", "");
+		tweetText = tweetText.replaceAll("RT", "");
 		
 		//remove symbols and basic :\w (colon followed by a word) emoticons
 		tweetText = tweetText.replaceAll("[^a-zA-Z0-9\\s]", "");
-		tweetText = tweetText.replaceAll("(:\\w+) | (:[^a-zA-Z0-9\\s]+)", "");
+		tweetText = tweetText.replaceAll("(:\\w+) | (:[^a-zA-Z0-9\\s']+)", "");
 		
 		//remove vowels that occur more than twice (and convert to just three to maintain emphasis)
 		tweetText = tweetText.replaceAll("aa(a+)", "aaa");
