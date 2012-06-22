@@ -40,7 +40,10 @@ public class TweetCleaner {
 		
 		URLEntity[] urls = tweet.getURLEntities();
 		for (URLEntity url : urls) {
+			System.out.println("URL: " + url.toString());
 			tweetText = tweetText.replaceAll(url.getDisplayURL(), "");
+			tweetText = tweetText.replaceAll(url.getURL().toString(), "");
+			tweetText = tweetText.replaceAll(url.getExpandedURL().toString(), "");
 		}
 		
 		UserMentionEntity[] mentions = tweet.getUserMentionEntities();
@@ -50,6 +53,7 @@ public class TweetCleaner {
 		
 		//remove RT keyword
 		tweetText = tweetText.replaceAll("rt : ", "");
+		tweetText = tweetText.replaceAll("rt", "");
 		
 		//remove symbols and basic :\w (colon followed by a word) emoticons
 		tweetText = tweetText.replaceAll("[^a-zA-Z0-9\\s]", "");
