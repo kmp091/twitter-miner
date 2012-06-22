@@ -32,6 +32,7 @@ public class Streamer {
 	private int curEmotion = EmotionDAO.HAPPY;
 	
 	private AtomicInteger tweetCounter = new AtomicInteger(0);
+	private int tweetsRequested = -1;
 	
 	StatusListener statusListener = new StatusListener(){
 
@@ -55,21 +56,25 @@ public class Streamer {
 
 		@Override
 		public void onStatus(Status status) {
-			// TODO Auto-generated method stub
-			System.out.println(status.getText());
-			//store on db code
-			Calendar cal = Calendar.getInstance();
-			cal.setTime(status.getCreatedAt());
-						
-			String cleanedTweet = tweetCleaner.tokenizeAndCleanTweet(status);				
-			
-			if (!cleanedTweet.isEmpty() || Pattern.matches("[a-zA-Z0-9]", cleanedTweet)) {
-				Tweet store = new Tweet(status.getId(), status.getUser().getId(), cleanedTweet, cal, curEmotion);
+			if (tweetsRequested != -1 && tweetCounter.get() >= tweetsRequested) {
+				//do nothing
+			}
+			else {
+				System.out.println(status.getText());
+				//store on db code
+				Calendar cal = Calendar.getInstance();
+				cal.setTime(status.getCreatedAt());
+							
+				String cleanedTweet = tweetCleaner.tokenizeAndCleanTweet(status);				
 				
-				tweetDAO.insertTweet(store);
-				
-				tweetCounter.incrementAndGet();
-				System.out.println("Number of streamed tweets so far: " + tweetCounter);
+				if (!cleanedTweet.isEmpty() || Pattern.matches("[a-zA-Z0-9]", cleanedTweet)) {
+					Tweet store = new Tweet(status.getId(), status.getUser().getId(), cleanedTweet, cal, curEmotion);
+					
+					tweetDAO.insertTweet(store);
+					
+					tweetCounter.incrementAndGet();
+					System.out.println("Number of streamed tweets so far: " + tweetCounter);
+				}
 			}
 			
 		}
