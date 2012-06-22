@@ -8,6 +8,7 @@ import com.twitminer.dao.DAOFactory;
 import com.twitminer.dao.EmoticonDAO;
 import com.twitminer.dao.EmotionDAO;
 import com.twitminer.dao.TweetDAO;
+import com.twitminer.util.TweetCleaner;
 
 import twitter4j.FilterQuery;
 import twitter4j.Status;
@@ -21,6 +22,8 @@ import twitter4j.conf.ConfigurationBuilder;
 public class Streamer {
 	
 	TwitterStream twitStream;
+	
+	TweetCleaner tweetCleaner;
 	
 	private TweetDAO tweetDAO;
 	
@@ -55,7 +58,10 @@ public class Streamer {
 			//store on db code
 			Calendar cal = Calendar.getInstance();
 			cal.setTime(status.getCreatedAt());
-			Tweet store = new Tweet(status.getId(), status.getUser().getId(), status.getText(), cal, curEmotion);
+						
+//			String cleanedTweet = tweetCleaner.something(status.getText());			
+			
+			Tweet store = new Tweet(status.getId(), status.getUser().getId(), status.getText() /*cleanedTweet*/, cal, curEmotion);
 			
 			tweetDAO.insertTweet(store);
 			
@@ -98,6 +104,8 @@ public class Streamer {
 	public void filter(String... filterString) {
 		FilterQuery filterQ = new FilterQuery();
 		filterQ.track(filterString);
+		
+//		TweetCleaner tweetCleaner = new TweetCleaner();
 		
 		twitStream.filter(filterQ);
 		

@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.twitminer.beans.Emoticon;
-import com.twitminer.beans.Emotion;
 import com.twitminer.dao.DAOFactory;
 import com.twitminer.dao.EmoticonDAO;
 import com.twitminer.storage.conn.DBConnFactory;
