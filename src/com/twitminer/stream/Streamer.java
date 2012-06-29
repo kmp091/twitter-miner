@@ -1,9 +1,13 @@
 package com.twitminer.stream;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
+
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import com.twitminer.beans.Tweet;
 import com.twitminer.dao.DAOFactory;
@@ -31,6 +35,8 @@ public class Streamer {
 	
 	private int curEmotion = EmotionDAO.HAPPY;
 	
+	private List<ChangeListener> changeListeners;
+	
 	private AtomicInteger tweetCounter = new AtomicInteger(0);
 	private int tweetsRequested = -1;
 	
@@ -56,7 +62,7 @@ public class Streamer {
 
 		@Override
 		public void onStatus(Status status) {
-			if (tweetsRequested != -1 && tweetCounter.get() > tweetsRequested) {
+			if (tweetsRequested != -1 && tweetCounter.get() >= tweetsRequested) {
 				//do nothing
 			}
 			else {
@@ -67,13 +73,15 @@ public class Streamer {
 							
 				String cleanedTweet = tweetCleaner.tokenizeAndCleanTweet(status);				
 				
-				if (!cleanedTweet.isEmpty() || Pattern.matches("[a-zA-Z0-9]", cleanedTweet)) {
+				if (cleanedTweet != null && !cleanedTweet.isEmpty() && cleanedTweet.length() > 1) {
 					Tweet store = new Tweet(status.getId(), status.getUser().getId(), cleanedTweet, cal, curEmotion);
 					
 					tweetDAO.insertTweet(store);
 					
 					tweetCounter.incrementAndGet();
-					System.out.println("Number of streamed tweets so far: " + tweetCounter);
+					
+					fireChangeEvent(new ChangeEvent(tweetCounter.toString()));
+					//System.out.println("Number of streamed tweets so far: " + tweetCounter);
 				}
 			}
 			
@@ -89,6 +97,7 @@ public class Streamer {
 	
 	public Streamer() {
 		tweetCleaner = new TweetCleaner();
+		this.changeListeners = new ArrayList<ChangeListener>();
 	}
 	
 	public Streamer(String consumerKey, String consumerSecret, AccessToken token) {
@@ -100,7 +109,7 @@ public class Streamer {
 		twitStream = new TwitterStreamFactory(cb.build()).getInstance(token);
 		twitStream.addListener(statusListener);
 		
-		DAOFactory daoFactory = DAOFactory.getInstance(DAOFactory.MYSQL);
+		DAOFactory daoFactory = DAOFactory.getInstance(DAOFactory.ARRAY_LIST);
 		tweetDAO = daoFactory.getTweetDAO();
 	}
 	
@@ -111,7 +120,7 @@ public class Streamer {
 	
 	public void filterAndAnnotate(int emotionId) {
 		System.out.println("Hold on to your pants, we're loading some emoticons :)");
-		DAOFactory daos = DAOFactory.getInstance(DAOFactory.MYSQL);
+		DAOFactory daos = DAOFactory.getInstance(DAOFactory.ARRAY_LIST);
 		EmoticonDAO emo = daos.getEmoticonDAO();
 		List<String> emoticons = emo.getEmoticonStringsByEmotion(emotionId);
 		filter(emoticons.toArray(new String[emoticons.size()]));
@@ -142,7 +151,7 @@ public class Streamer {
 	public void filterAndAnnotateUntil(int numOfTweets, int emotionId) {
 		this.curEmotion = emotionId;
 		System.out.println("Hold on to your pants, we're loading some emoticons :)");
-		DAOFactory daos = DAOFactory.getInstance(DAOFactory.MYSQL);
+		DAOFactory daos = DAOFactory.getInstance(DAOFactory.ARRAY_LIST);
 		EmoticonDAO emo = daos.getEmoticonDAO();
 		List<String> emoticons = emo.getEmoticonStringsByEmotion(emotionId);
 		this.filterUntil(numOfTweets, emoticons.toArray(new String[emoticons.size()]));
@@ -162,5 +171,20 @@ public class Streamer {
 		tweetCounter.set(0);
 		
 		shutdown();
+	}
+	
+	public void addChangeListener (ChangeListener changeListener) {
+		this.changeListeners.add(changeListener);
+	}
+	
+	public void removeChangeListener (ChangeListener changeListener) {
+		this.changeListeners.remove(changeListener);
+	}
+	
+	private void fireChangeEvent (ChangeEvent evt) {
+		//System.out.println("On change!");
+		for (ChangeListener change : changeListeners) {
+			change.stateChanged(evt);
+		}
 	}
 }

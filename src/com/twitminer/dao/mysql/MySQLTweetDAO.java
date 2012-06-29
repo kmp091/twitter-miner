@@ -120,4 +120,27 @@ public class MySQLTweetDAO extends TweetDAO {
 		return newTweet;
 	}
 
+	@Override
+	public List<Tweet> getTweets() {
+		try {
+			Connection conn = DBConnFactory.getInstance(DAOFactory.MYSQL).getConnection();
+			
+			PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM " + tableName);
+			
+			ResultSet rs = pstmt.executeQuery();
+			
+			ArrayList<Tweet> newTweets = new ArrayList<Tweet>();
+			
+			if (rs.next()) {
+				newTweets.add(retrieveObject(rs));
+			}
+			conn.close();
+			return newTweets;
+		}
+		catch (SQLException ex) {
+			ex.printStackTrace();
+			return null;
+		}
+	}
+
 }
