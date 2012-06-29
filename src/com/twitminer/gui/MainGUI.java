@@ -147,7 +147,7 @@ public class MainGUI {
 					@Override
 					public void onTaskFinished(TaskFinishEvent evt) {
 						progressBar.setValue(progressBar.getMaximum());
-						progressBar.setString("Finished! You can exit the application or save a CSV of the collected tweets.");
+						progressBar.setString("Finished! You can exit or save a CSV of the tweets.");
 						saveCSVButton.setVisible(true);
 						saveCSVButton.addActionListener(new ActionListener() {
 
@@ -155,7 +155,7 @@ public class MainGUI {
 							public void actionPerformed(ActionEvent arg0) {
 								DAOFactory daos = DAOFactory.getInstance(DAOFactory.ARRAY_LIST);
 								try {
-									CSVSaver.saveToCSV(daos.getTweetDAO().getTweets(), daos.getEmotionDAO());
+									CSVSaver.saveToCSV(miner.getTweets(), daos.getEmotionDAO());
 								} catch (IOException e) {
 									e.printStackTrace();
 									JOptionPane.showMessageDialog(null, "Save failed. Please try again.", "Save failed", JOptionPane.ERROR_MESSAGE);

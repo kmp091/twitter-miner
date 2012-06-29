@@ -12,6 +12,7 @@ import javax.swing.JOptionPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.twitminer.beans.Tweet;
 import com.twitminer.dao.EmotionDAO;
 import com.twitminer.event.AuthorizationEvent;
 import com.twitminer.event.AuthorizationInputEvent;
@@ -269,6 +270,13 @@ public class MinerInit {
 		//store token and token secret to prefs
 		prefs.put(TOKEN_PREFS_KEY, token.getToken());
 		prefs.put(TOKEN_SECRET_PREFS_KEY, token.getTokenSecret());
+	}
+	
+	public List<Tweet> getTweets () {
+		if (stream.getTweetDAO() == null) {
+			return null;
+		}
+		return stream.getTweetDAO().getTweets();
 	}
 	
 }

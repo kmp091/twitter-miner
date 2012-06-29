@@ -187,4 +187,8 @@ public class Streamer {
 			change.stateChanged(evt);
 		}
 	}
+
+	public TweetDAO getTweetDAO() {
+		return tweetDAO;
+	}
 }
