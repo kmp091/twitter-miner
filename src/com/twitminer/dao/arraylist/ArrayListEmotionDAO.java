@@ -1,14 +1,13 @@
 package com.twitminer.dao.arraylist;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import com.twitminer.beans.Emotion;
 import com.twitminer.dao.EmotionDAO;
 
 public class ArrayListEmotionDAO extends EmotionDAO {
 
-	List<Emotion> emotions;
+	ArrayList<Emotion> emotions;
 	
 	ArrayListEmotionDAO () {
 		emotions = new ArrayList<Emotion>();
@@ -29,6 +28,8 @@ public class ArrayListEmotionDAO extends EmotionDAO {
 		tempEmo.setEmotionId(4);
 		tempEmo.setEmotionName("Disgusted");
 		emotions.add(tempEmo);
+		
+		emotions.trimToSize();
 	}
 	
 	

@@ -43,7 +43,7 @@ public class MinerInit {
 	
 	private Streamer stream;
 	
-	public static final int MAX_TWEETS = 2000;
+	public static final int MAX_TWEETS = 5;
 	
 	public MinerInit () {
 		listeners = new ArrayList<AuthorizationEventListener>();

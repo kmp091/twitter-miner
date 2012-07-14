@@ -8,9 +8,6 @@ import javax.swing.JPanel;
 import javax.swing.BoxLayout;
 import java.awt.Component;
 import javax.swing.Box;
-import javax.swing.border.BevelBorder;
-import javax.swing.border.EtchedBorder;
-import javax.swing.border.SoftBevelBorder;
 import java.awt.Dimension;
 import javax.swing.JButton;
 import javax.swing.border.TitledBorder;
@@ -106,7 +103,6 @@ public class TwitterAuth extends JDialog {
 		sideBySidePanel.add(horizontalGlue_1);
 		
 		JPanel secondStepPanel = new JPanel();
-		secondStepPanel.setVisible(false);
 		secondStepPanel.setBorder(new TitledBorder(null, "Step 2", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		secondStepPanel.setToolTipText("Log in using these credentials");
 		stepsPanel.add(secondStepPanel);
@@ -137,7 +133,6 @@ public class TwitterAuth extends JDialog {
 		sideBySidePanel2.add(horizontalGlue_3);
 		
 		JPanel thirdStepPanel = new JPanel();
-		thirdStepPanel.setVisible(false);
 		thirdStepPanel.setBorder(new TitledBorder(null, "Step 3", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		stepsPanel.add(thirdStepPanel);
 		thirdStepPanel.setLayout(new BoxLayout(thirdStepPanel, BoxLayout.Y_AXIS));
@@ -156,7 +151,6 @@ public class TwitterAuth extends JDialog {
 		tokenField.setColumns(10);
 		
 		JPanel fourthStepPanel = new JPanel();
-		fourthStepPanel.setVisible(false);
 		fourthStepPanel.setBorder(new TitledBorder(null, "Step 4", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		stepsPanel.add(fourthStepPanel);
 		fourthStepPanel.setLayout(new BoxLayout(fourthStepPanel, BoxLayout.Y_AXIS));

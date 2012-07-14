@@ -132,4 +132,30 @@ public class MySQLEmoticonDAO extends EmoticonDAO {
 		}
 	}
 
+	@Override
+	public Emoticon getEmoticonByString(String emoticonString) {
+		try {
+			Connection conn = DBConnFactory.getInstance(DAOFactory.MYSQL).getConnection();
+			
+			PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM " + tableName + " WHERE emoticon = ?");
+			pstmt.setString(1, emoticonString);
+			
+			ResultSet rs = pstmt.executeQuery();
+			
+			Emoticon emoticon = null;
+			if (rs.next()) {
+				emoticon = new Emoticon();
+				emoticon.setEmoticon(rs.getString("emoticon"));
+				emoticon.setEmoticonId(rs.getInt("emoticonId"));
+				emoticon.setEmotionId(rs.getInt("emoId"));
+			}
+			conn.close();
+			return emoticon;
+		}
+		catch (SQLException ex) {
+			ex.printStackTrace();
+			return null;
+		}
+	}
+
 }

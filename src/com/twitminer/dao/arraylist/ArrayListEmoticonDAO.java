@@ -5,10 +5,11 @@ import java.util.ArrayList;
 
 import com.twitminer.beans.Emoticon;
 import com.twitminer.dao.EmoticonDAO;
+import com.twitminer.dao.mysql.MySQLEmotionDAO;
 
 public class ArrayListEmoticonDAO extends EmoticonDAO {
 
-	List<Emoticon> emoticons;
+	ArrayList<Emoticon> emoticons;
 	
 	ArrayListEmoticonDAO () {
 		emoticons = new ArrayList<Emoticon>();
@@ -463,6 +464,33 @@ public class ArrayListEmoticonDAO extends EmoticonDAO {
 		tempEmo.setEmoticon("@_@");
 		tempEmo.setEmotionId(3);
 		emoticons.add(tempEmo);
+		
+		/*Hashtags*/
+		tempEmo = new Emoticon();
+		tempEmo.setEmoticonId(91);
+		tempEmo.setEmoticon("#happy");
+		tempEmo.setEmoticonId(MySQLEmotionDAO.HAPPY);
+		emoticons.add(tempEmo);
+		
+		tempEmo = new Emoticon();
+		tempEmo.setEmoticonId(92);
+		tempEmo.setEmoticon("#sad");
+		tempEmo.setEmoticonId(MySQLEmotionDAO.SAD);
+		emoticons.add(tempEmo);
+		
+		tempEmo = new Emoticon();
+		tempEmo.setEmoticonId(93);
+		tempEmo.setEmoticon("#surprise");
+		tempEmo.setEmoticonId(MySQLEmotionDAO.SURPRISE);
+		emoticons.add(tempEmo);
+		
+		tempEmo = new Emoticon();
+		tempEmo.setEmoticonId(94);
+		tempEmo.setEmoticon("#disgust");
+		tempEmo.setEmoticonId(MySQLEmotionDAO.DISGUST);
+		emoticons.add(tempEmo);
+		
+		emoticons.trimToSize();
 	}
 	
 	@Override
@@ -503,6 +531,17 @@ public class ArrayListEmoticonDAO extends EmoticonDAO {
 		}
 		
 		return emoStrings;
+	}
+
+	@Override
+	public Emoticon getEmoticonByString(String emoticonString) {
+		for (Emoticon emo : this.emoticons) {
+			if (emo.getEmoticon().equalsIgnoreCase(emoticonString)) {
+				return emo;
+			}
+		}
+		
+		return null;
 	}
 
 }

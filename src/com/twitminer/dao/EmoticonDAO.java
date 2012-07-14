@@ -23,4 +23,6 @@ public abstract class EmoticonDAO {
 		return getEmoticonsByEmotion(emotion.getEmotionId());
 	}
 	
+	public abstract Emoticon getEmoticonByString(String emoticonString);
+	
 }

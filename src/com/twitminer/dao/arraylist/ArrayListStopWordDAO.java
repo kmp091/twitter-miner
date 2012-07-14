@@ -8,7 +8,7 @@ import com.twitminer.dao.StopWordDAO;
 
 public class ArrayListStopWordDAO extends StopWordDAO {
 
-	List<StopWord> stopWords;
+	ArrayList<StopWord> stopWords;
 	
 	public ArrayListStopWordDAO () {
 		stopWords = new ArrayList<StopWord>();
@@ -2529,6 +2529,8 @@ public class ArrayListStopWordDAO extends StopWordDAO {
 		tempStop.setStopWordId(629);
 		tempStop.setStopWord("zero");
 		stopWords.add(tempStop);
+		
+		stopWords.trimToSize();
 	}
 	
 	@Override

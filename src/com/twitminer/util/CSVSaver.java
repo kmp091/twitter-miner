@@ -3,16 +3,33 @@ package com.twitminer.util;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 
-import com.twitminer.beans.Emotion;
 import com.twitminer.beans.Tweet;
 import com.twitminer.dao.EmotionDAO;
 
 public class CSVSaver {
+	
+	private static HashMap<Long, String[]> tokensPerTweet;
+	private static int maxNumOfTokens;
+	
+	private static void preProcessTweets(List<Tweet> tweets) {
+		tokensPerTweet = new HashMap<Long, String[]>();
+		maxNumOfTokens = 0;
+		
+		for (Tweet tweet : tweets) {
+			String[] tokens = tweet.getText().split(" ");
+			tokensPerTweet.put(tweet.getTweetId(), tokens);
+			if (tokens.length > maxNumOfTokens) {
+				maxNumOfTokens = tokens.length;
+			}
+		}
+	}
 
 	public static void saveToCSV(List<Tweet> tweets, EmotionDAO emotion) throws IOException {
 		JFileChooser fileChooser = new JFileChooser();
@@ -20,26 +37,52 @@ public class CSVSaver {
 		fileChooser.setFileFilter(new CSVSaver.ExtensionFileFilter("CSV file (.csv)", "CSV"));
 		
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			preProcessTweets(tweets);
+			
 			File file = fileChooser.getSelectedFile();
+			
 			FileWriter writer = new FileWriter(file);
-			writer.append("tweet_id").append(",")
-				.append("userId").append(",")
-				.append("textMSG").append(",")
-				.append("created_at").append(",")
-				.append("emoname").append("\n");
+
+			writer.append("emotion").append(",");
+			
+			for (int i = 1; i <= maxNumOfTokens; i++) {
+				
+				writer.append("token").append(Integer.toString(i));
+				
+				if (i != maxNumOfTokens) {
+					writer.append(",");					
+				}
+				else {
+					writer.append("\n");
+				}
+			}
 			
 			for (Tweet tweet : tweets) {
-				writer.append(Long.toString(tweet.getTweetId())).append(",")
-					.append(Long.toString(tweet.getUserId())).append(",")
-					.append(tweet.getText()).append(",")
-					.append(new java.sql.Timestamp(tweet.getDateCreated().getTimeInMillis()).toString()).append(",")
-					.append(emotion.getEmotionById(tweet.getEmotionId()).getEmotionName()).append("\n");
+				writer.append(emotion.getEmotionById(tweet.getEmotionId()).getEmotionName()).append(",");
+				
+				String[] retrievedTweetTokens = tokensPerTweet.get(tweet.getTweetId());
+				int tweetLength = retrievedTweetTokens.length;
+				
+				for (int curSize = 0; curSize < maxNumOfTokens; curSize++) {
+					if (curSize < tweetLength) {
+						writer.append(retrievedTweetTokens[curSize]);
+					}
+					
+					if (curSize < maxNumOfTokens - 1) {
+						writer.append(",");
+					}
+				}
+				
+				writer.append("\n");
 			}
 			
 			writer.flush();
 			writer.close();
+			JOptionPane.showMessageDialog(null, "Finished saving!");
 		}
 	}	
+	
+	
 	
 	public static class ExtensionFileFilter extends FileFilter {
 		  String description;

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Pattern;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -62,7 +61,7 @@ public class Streamer {
 
 		@Override
 		public void onStatus(Status status) {
-			if (tweetsRequested != -1 && tweetCounter.get() >= tweetsRequested) {
+			if (tweetsRequested != -1 && tweetCounter.intValue() >= tweetsRequested) {
 				//do nothing
 			}
 			else {
@@ -80,7 +79,7 @@ public class Streamer {
 					
 					tweetCounter.incrementAndGet();
 					
-					fireChangeEvent(new ChangeEvent(tweetCounter.toString()));
+					fireChangeEvent(new ChangeEvent(Integer.toString(tweetCounter.get())));
 					//System.out.println("Number of streamed tweets so far: " + tweetCounter);
 				}
 			}

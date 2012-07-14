@@ -14,22 +14,22 @@ import java.awt.Dimension;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.JTextPane;
-import javax.swing.BoxLayout;
 
 import com.twitminer.MinerInit;
+import com.twitminer.beans.Tweet;
 import com.twitminer.dao.DAOFactory;
+import com.twitminer.dao.EmotionDAO;
 import com.twitminer.event.AuthorizationInputEvent;
 import com.twitminer.event.TaskFinishEvent;
 import com.twitminer.event.listener.AuthorizationInputEventListener;
 import com.twitminer.event.listener.TaskFinishEventListener;
 import com.twitminer.util.CSVSaver;
+import com.twitminer.util.SaverFactory;
 
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.List;
 
 import javax.swing.JProgressBar;
 import javax.swing.event.ChangeEvent;
@@ -109,7 +109,12 @@ public class MainGUI {
 		startArea.setLayout(new BorderLayout(0, 0));
 		
 		final JButton startButton = new JButton("Start");
+		startButton.setFont(new Font("Lucida Grande", Font.PLAIN, 25));
 		startArea.add(startButton, BorderLayout.CENTER);
+		
+		final JButton saveARFFButton = new JButton("Save ARFF");
+		saveARFFButton.setVisible(false);
+		startArea.add(saveARFFButton, BorderLayout.WEST);
 		
 		Component rigidArea_5 = Box.createRigidArea(new Dimension(300, 55));
 		startArea.add(rigidArea_5, BorderLayout.NORTH);
@@ -121,6 +126,7 @@ public class MainGUI {
 		startArea.add(rigidArea_7, BorderLayout.SOUTH);
 		
 		final JButton saveCSVButton = new JButton("Save CSV");
+		saveCSVButton.setFont(new Font("Lucida Grande", Font.PLAIN, 13));
 		saveCSVButton.setVisible(false);
 		startArea.add(saveCSVButton, BorderLayout.EAST);
 		
@@ -147,22 +153,28 @@ public class MainGUI {
 					@Override
 					public void onTaskFinished(TaskFinishEvent evt) {
 						progressBar.setValue(progressBar.getMaximum());
-						progressBar.setString("Finished! You can exit or save a CSV of the tweets.");
+						progressBar.setString("Finished! You can exit or save a CSV/ARFF of the tweets.");
 						saveCSVButton.setVisible(true);
 						saveCSVButton.addActionListener(new ActionListener() {
 
 							@Override
 							public void actionPerformed(ActionEvent arg0) {
-								DAOFactory daos = DAOFactory.getInstance(DAOFactory.ARRAY_LIST);
-								try {
-									CSVSaver.saveToCSV(miner.getTweets(), daos.getEmotionDAO());
-								} catch (IOException e) {
-									e.printStackTrace();
-									JOptionPane.showMessageDialog(null, "Save failed. Please try again.", "Save failed", JOptionPane.ERROR_MESSAGE);
-								}
+								saveFormat(SaverFactory.CSV, miner.getTweets());
 							}
 							
 						});
+						
+						saveARFFButton.setVisible(true);
+						saveARFFButton.addActionListener(new ActionListener() {
+
+							@Override
+							public void actionPerformed(ActionEvent arg0) {
+								saveFormat(SaverFactory.ARFF, miner.getTweets());
+							}
+							
+						});
+						
+						startButton.setVisible(false);
 					}
 					
 				});
@@ -182,6 +194,13 @@ public class MainGUI {
 			
 		});
 		
+	}
+	
+	private void saveFormat(int format, List<Tweet> tweets) {
+		DAOFactory daos = DAOFactory.getInstance(DAOFactory.ARRAY_LIST);
+		EmotionDAO emotion = daos.getEmotionDAO();
+		
+		SaverFactory.getInstance(format).save(tweets, emotion);
 	}
 
 }
