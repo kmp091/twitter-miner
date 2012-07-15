@@ -167,59 +167,65 @@ public class MainGUI {
 				progressBar.setEnabled(true);
 				progressBar.setValue(10);
 				progressBar.setString("Authorizing...");
-				final MinerInit miner = new MinerInit();
-				miner.addChangeListener(new ChangeListener() {
-
-					@Override
-					public void stateChanged(ChangeEvent e) {
-						progressBar.setString(e.getSource().toString());
-						progressBar.setValue(progressBar.getValue() + 1);
-					}
-					
-				});
-				
-				miner.addTaskFinishListener(new TaskFinishEventListener() {
-
-					@Override
-					public void onTaskFinished(TaskFinishEvent evt) {
-						progressBar.setValue(progressBar.getMaximum());
-						progressBar.setString("Finished! You can exit or save a CSV/ARFF of the tweets.");
-						saveCSVButton.setVisible(true);
-						saveCSVButton.addActionListener(new ActionListener() {
-
-							@Override
-							public void actionPerformed(ActionEvent arg0) {
-								saveFormat(SaverFactory.CSV, miner.getTweets(), saveListener);
-							}
-							
-						});
+				try {
+					final MinerInit miner = new MinerInit();
+					miner.addChangeListener(new ChangeListener() {
+	
+						@Override
+						public void stateChanged(ChangeEvent e) {
+							progressBar.setString(e.getSource().toString());
+							progressBar.setValue(progressBar.getValue() + 1);
+						}
 						
-						saveARFFButton.setVisible(true);
-						saveARFFButton.addActionListener(new ActionListener() {
-
-							@Override
-							public void actionPerformed(ActionEvent arg0) {
-								saveFormat(SaverFactory.ARFF, miner.getTweets(), saveListener);
-							}
+					});
+					
+					miner.addTaskFinishListener(new TaskFinishEventListener() {
+	
+						@Override
+						public void onTaskFinished(TaskFinishEvent evt) {
+							progressBar.setValue(progressBar.getMaximum());
+							progressBar.setString("Finished! You can exit or save a CSV/ARFF of the tweets.");
+							saveCSVButton.setVisible(true);
+							saveCSVButton.addActionListener(new ActionListener() {
+	
+								@Override
+								public void actionPerformed(ActionEvent arg0) {
+									saveFormat(SaverFactory.CSV, miner.getTweets(), saveListener);
+								}
+								
+							});
 							
-						});
+							saveARFFButton.setVisible(true);
+							saveARFFButton.addActionListener(new ActionListener() {
+	
+								@Override
+								public void actionPerformed(ActionEvent arg0) {
+									saveFormat(SaverFactory.ARFF, miner.getTweets(), saveListener);
+								}
+								
+							});
+							
+							startButton.setVisible(false);
+						}
 						
-						startButton.setVisible(false);
-					}
-					
-				});
-				miner.addOnAuthorizationListener(new AuthorizationInputEventListener() {
-
-					@Override
-					public void onAuthorized(AuthorizationInputEvent evt) {
-						progressBar.setValue(20);
-						progressBar.setString("Authorized");
-						startButton.setEnabled(false);
-						miner.startStream();
-					}
-					
-				});
-				miner.initialize();				
+					});
+					miner.addOnAuthorizationListener(new AuthorizationInputEventListener() {
+	
+						@Override
+						public void onAuthorized(AuthorizationInputEvent evt) {
+							progressBar.setValue(20);
+							progressBar.setString("Authorized");
+							startButton.setEnabled(false);
+							miner.startStream();
+						}
+						
+					});
+					miner.initialize();
+				}
+				catch (OutOfMemoryError out) {
+					JOptionPane.showMessageDialog(frmTwitminer, "Unfortunately, the JVM was not allocated enough memory in order to run. The application cannot run.");
+					System.exit(1);
+				}
 			}
 			
 		});
