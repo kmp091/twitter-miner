@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.Set;
 
 import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.twitminer.beans.Tweet;
 import com.twitminer.dao.EmotionDAO;
+import com.twitminer.event.listener.SavedEventListener;
 
 public abstract class Saver {
 
@@ -24,14 +24,19 @@ public abstract class Saver {
 	
 	private Set<String> allWords;
 	
+	private List<SavedEventListener> savedEventListeners;
+	
 	protected Saver(String description, String extension) {
+		this();
 		filter = new FileNameExtensionFilter(description, extension);
 		this.ext = extension;
-		this.allWords = new HashSet<String>();
 	}
 	
 	protected Saver() {
-		
+		this.allWords = new HashSet<String>();
+		filter = new FileNameExtensionFilter("Comma separated values", "csv");
+		this.ext = "csv";
+		savedEventListeners = new ArrayList<SavedEventListener>();
 	}
 	
 	private List<TokenizedTweet> preprocessTweets (List<Tweet> tweets) {
@@ -56,6 +61,8 @@ public abstract class Saver {
 		int returnVal = fileChooser.showSaveDialog(null);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			
+			this.fireOnSave();
+			
 			List<TokenizedTweet> processedTweets = preprocessTweets(tweets);
 			
 			try {
@@ -71,10 +78,12 @@ public abstract class Saver {
 				FileWriter writer = new FileWriter(savedFile);
 				saveOutput(writer, processedTweets, allWords, emotion);
 				writer.close();
-				JOptionPane.showMessageDialog(null, "Save successful!");
+				this.fireOnSaveSuccess();
+//				JOptionPane.showMessageDialog(null, "Save successful!");
 			}
 			catch (IOException io) {
-				JOptionPane.showMessageDialog(null, "<html>Save failed...<br><br>" + io.getMessage() + "</html>");
+//				JOptionPane.showMessageDialog(null, "<html>Save failed...<br><br>" + io.getMessage() + "</html>");
+				this.fireOnSaveFailed(io);
 			}
 		}
 		
@@ -95,6 +104,32 @@ public abstract class Saver {
 		}
 		
 		return false;
+	}
+	
+	public void addSavedEventListener(SavedEventListener listener) {
+		this.savedEventListeners.add(listener);
+	}
+	
+	public void removeSavedEventListener(SavedEventListener listener) {
+		this.savedEventListeners.remove(listener);
+	}
+	
+	private void fireOnSave() {
+		for (SavedEventListener listener : this.savedEventListeners) {
+			listener.onSave();
+		}
+	}
+	
+	private void fireOnSaveSuccess() {
+		for (SavedEventListener listener : this.savedEventListeners) {
+			listener.onSaveSuccess();
+		}
+	}
+	
+	private void fireOnSaveFailed(Exception ex) {
+		for (SavedEventListener listener : this.savedEventListeners) {
+			listener.onSaveFailed(ex);
+		}
 	}
 	
 }

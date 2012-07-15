@@ -1,14 +1,14 @@
 package com.twitminer.util;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 import com.twitminer.beans.Tweet;
+
+import edu.northwestern.at.utils.corpuslinguistics.tokenizer.WordTokenizerFactory;
 
 public class TokenizedTweet {
 
@@ -16,13 +16,13 @@ public class TokenizedTweet {
 	private int emotion;
 	
 	public TokenizedTweet(Tweet tweet) {
-		List<String> wordArray = new LinkedList<String>(Arrays.asList(tweet.getText().split(" ")));
+		List<String> wordArray = new WordTokenizerFactory().newWordTokenizer().extractWords(tweet.getText());
 		
 		Iterator<String> it = wordArray.iterator();
 		while (it.hasNext()) {
 			String word = it.next();
 			
-			if (word.isEmpty() || word.equalsIgnoreCase("\n")) {
+			if (word.isEmpty() || word.equalsIgnoreCase("\n") || word.contains("\n")) {
 				it.remove();
 			}
 		}

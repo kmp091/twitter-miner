@@ -4,6 +4,8 @@ import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
 import java.awt.BorderLayout;
 import java.awt.Font;
 import javax.swing.SwingConstants;
@@ -21,7 +23,9 @@ import com.twitminer.dao.EmotionDAO;
 import com.twitminer.event.AuthorizationInputEvent;
 import com.twitminer.event.TaskFinishEvent;
 import com.twitminer.event.listener.AuthorizationInputEventListener;
+import com.twitminer.event.listener.SavedEventListener;
 import com.twitminer.event.listener.TaskFinishEventListener;
+import com.twitminer.util.Saver;
 import com.twitminer.util.SaverFactory;
 
 import java.awt.event.ActionEvent;
@@ -127,6 +131,35 @@ public class MainGUI {
 		saveCSVButton.setVisible(false);
 		startArea.add(saveCSVButton, BorderLayout.EAST);
 		
+		final SavedEventListener saveListener = new SavedEventListener() {
+
+			@Override
+			public void onSave() {
+				saveCSVButton.setEnabled(false);
+				saveARFFButton.setEnabled(false);
+				progressBar.setString("Saving... Please wait...");
+				frmTwitminer.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+			}
+
+			@Override
+			public void onSaveSuccess() {
+				saveCSVButton.setEnabled(true);
+				saveARFFButton.setEnabled(true);
+				frmTwitminer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+				progressBar.setString("The save operation was successful!");
+			}
+
+			@Override
+			public void onSaveFailed(Exception e) {
+				saveCSVButton.setEnabled(true);
+				saveARFFButton.setEnabled(true);
+				frmTwitminer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+				progressBar.setString("The save operation was not successful.");
+				JOptionPane.showMessageDialog(frmTwitminer, "<html>Save failed...<br><br>" + e.getMessage() + "</html>");
+			}
+			
+		};
+		
 		startButton.addActionListener(new ActionListener() {
 
 			@Override
@@ -156,7 +189,7 @@ public class MainGUI {
 
 							@Override
 							public void actionPerformed(ActionEvent arg0) {
-								saveFormat(SaverFactory.CSV, miner.getTweets());
+								saveFormat(SaverFactory.CSV, miner.getTweets(), saveListener);
 							}
 							
 						});
@@ -166,7 +199,7 @@ public class MainGUI {
 
 							@Override
 							public void actionPerformed(ActionEvent arg0) {
-								saveFormat(SaverFactory.ARFF, miner.getTweets());
+								saveFormat(SaverFactory.ARFF, miner.getTweets(), saveListener);
 							}
 							
 						});
@@ -193,11 +226,16 @@ public class MainGUI {
 		
 	}
 	
-	private void saveFormat(int format, List<Tweet> tweets) {
+	private void saveFormat(int format, List<Tweet> tweets, SavedEventListener listener) {
 		DAOFactory daos = DAOFactory.getInstance(DAOFactory.ARRAY_LIST);
 		EmotionDAO emotion = daos.getEmotionDAO();
 		
-		SaverFactory.getInstance(format).save(tweets, emotion);
+		Saver saver = SaverFactory.getInstance(format);
+		if (listener != null) {
+			saver.addSavedEventListener(listener);
+		}
+
+		saver.save(tweets, emotion);
 	}
 
 }

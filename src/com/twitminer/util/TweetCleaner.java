@@ -299,7 +299,7 @@ public class TweetCleaner {
 					if (respelledToken != null) {
 						System.out.println("Respelled token: " + respelledToken);
 						
-						respelledToken = tweetText.replaceAll("[^a-zA-Z\\s]", "");
+						respelledToken = respelledToken.replaceAll("[^a-zA-Z]", "");
 						
 						if (!cleanedTokens.contains(respelledToken)) {
 							cleanedTokens.add(respelledToken);
@@ -326,17 +326,20 @@ public class TweetCleaner {
 				AdornedWord curEntry = iter.next();
 				System.out.println(curEntry.getToken() + " - " + curEntry.getPartsOfSpeech());
 				
+				//automatically remove words with less than 2 characters (likely useless)
+				if (curEntry.getToken().length() <= 2) {
+					iter.remove();
+					continue;
+				}
+				
 				//remove useless parts of speech
 				if (this.isOneOfThePartsOfSpeech(curEntry, uselessPOS)) {
 					iter.remove();
 				}
-				else if (! this.isOneOfThePartsOfSpeech(curEntry, unlemmatizable)) {
+				else if (!this.isOneOfThePartsOfSpeech(curEntry, unlemmatizable)) {
 					if (!lemmatizer.cantLemmatize(curEntry.getToken())) {
 						curEntry.setToken(lemmatizer.lemmatize(curEntry.getToken()));
 					}
-				}
-				else if (curEntry.getToken().length() <= 2) {
-					iter.remove();
 				}
 				
 			}
