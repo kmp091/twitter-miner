@@ -3,6 +3,7 @@ package com.twitminer.stream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.event.ChangeEvent;
@@ -39,6 +40,8 @@ public class Streamer {
 	private AtomicInteger tweetCounter = new AtomicInteger(0);
 	private int tweetsRequested = -1;
 	
+	private AtomicBoolean firingEvent = new AtomicBoolean(false);
+	
 	StatusListener statusListener = new StatusListener(){
 
 		@Override
@@ -61,8 +64,8 @@ public class Streamer {
 
 		@Override
 		public void onStatus(Status status) {
-			if (tweetsRequested != -1 && tweetCounter.intValue() >= tweetsRequested) {
-				//do nothing
+			if (tweetsRequested != -1 && tweetCounter.get() >= tweetsRequested) {
+				System.out.println("Over the requested number");
 			}
 			else {
 				System.out.println(status.getText());
@@ -80,7 +83,7 @@ public class Streamer {
 					tweetCounter.incrementAndGet();
 					
 					fireChangeEvent(new ChangeEvent(Integer.toString(tweetCounter.get())));
-					//System.out.println("Number of streamed tweets so far: " + tweetCounter);
+					System.out.println("Number of streamed tweets so far: " + tweetCounter);
 				}
 			}
 			
@@ -137,7 +140,7 @@ public class Streamer {
 		twitStream.shutdown();
 	}
 	
-	public void filterAndAnnotateUntil(int numOfTweets, int emotionId, String... filterString) {
+	public void filterAndAnnotateUntil(int numOfTweets, int emotionId, String... filterString) throws InterruptedException {
 		this.curEmotion = emotionId;
 		this.filterUntil(numOfTweets, filterString);
 	}
@@ -146,8 +149,9 @@ public class Streamer {
 	 * 
 	 * @param numOfTweets
 	 * @param emotionId
+	 * @throws InterruptedException 
 	 */
-	public void filterAndAnnotateUntil(int numOfTweets, int emotionId) {
+	public void filterAndAnnotateUntil(int numOfTweets, int emotionId) throws InterruptedException {
 		this.curEmotion = emotionId;
 		System.out.println("Hold on to your pants, we're loading some emoticons :)");
 		DAOFactory daos = DAOFactory.getInstance(DAOFactory.ARRAY_LIST);
@@ -156,37 +160,46 @@ public class Streamer {
 		this.filterUntil(numOfTweets, emoticons.toArray(new String[emoticons.size()]));
 	}
 	
-	public void filterUntil(int numOfTweets, String... filterString) {
+	public void filterUntil(int numOfTweets, String... filterString) throws InterruptedException {
+		this.tweetsRequested = numOfTweets;
+		
 		filter(filterString);
 
 		System.out.println("Don't worry, system hasn't hung: we're just blocking the main thread until");
 		System.out.println("the number of tweets that come in has reached " + numOfTweets);
 		
-		while (tweetCounter.get() <= numOfTweets) {
+		while (tweetCounter.get() < this.tweetsRequested) {
 			//this'll block the main thread, maybe in the future create a runnable thread
 		}
 		
 		System.out.println("Resetting counter and shutting down");
-		tweetCounter.set(0);
-		
 		shutdown();
+		tweetCounter.set(0);
 	}
 	
 	public void addChangeListener (ChangeListener changeListener) {
+		while (this.firingEvent.get()) {
+			
+		}
 		this.changeListeners.add(changeListener);
 	}
 	
 	public void removeChangeListener (ChangeListener changeListener) {
-		this.changeListeners.remove(changeListener);
+		while (this.firingEvent.get()) {
+			
+		}
+ 		this.changeListeners.remove(changeListener);
 	}
 	
 	private void fireChangeEvent (ChangeEvent evt) {
 		//System.out.println("On change!");
+		this.firingEvent.set(true);
 		for (ChangeListener change : changeListeners) {
 			change.stateChanged(evt);
 		}
+		this.firingEvent.set(false);
 	}
-
+	
 	public TweetDAO getTweetDAO() {
 		return tweetDAO;
 	}

@@ -1,20 +1,73 @@
 package com.twitminer.util;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
+import java.io.Writer;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
-import com.twitminer.beans.Tweet;
 import com.twitminer.dao.EmotionDAO;
 
 public class CSVSaver2 extends Saver {
 
-	private HashMap<Long, String[]> tokensPerTweet;
-	private int maxNumOfTokens;
+//	private HashMap<Long, String[]> tokensPerTweet;
+//	private int maxNumOfTokens;
 	
-	private void preProcessTweets(List<Tweet> tweets) {
+	public CSVSaver2() {
+		super("Comma Separated Values", "csv");
+	}
+
+	@Override
+	protected void writeHeader(Writer writer, List<TokenizedTweet> tweets,
+			Set<String> allWords, EmotionDAO emotion) throws IOException {
+		writer.append("emotion").append(",");
+		
+		Iterator<String> allWordIterator = allWords.iterator();
+		while (allWordIterator.hasNext()) {
+			writer.append(allWordIterator.next());
+			
+			if (allWordIterator.hasNext()) {
+				writer.append(",");
+			}
+		}
+		
+		writer.append("\n");
+		
+	}
+
+	@Override
+	protected void writePayload(Writer writer, List<TokenizedTweet> tweets,
+			Set<String> allWords, EmotionDAO emotion) throws IOException {
+		Iterator<TokenizedTweet> tweetIterator = tweets.iterator();
+		while (tweetIterator.hasNext()) {
+			TokenizedTweet curTweet = tweetIterator.next();
+			
+			String emotionName = emotion.getEmotionById(curTweet.getEmotionID()).getEmotionName();
+			writer.append(emotionName).append(",");
+			
+			Iterator<String> allWordIterator = allWords.iterator();
+			while (allWordIterator.hasNext()) {
+				String masterWord = allWordIterator.next();
+				
+				if (curTweet.containsWord(masterWord)) {
+					writer.append('1');
+				}
+				else {
+					writer.append('0');
+				}
+				
+				if (allWordIterator.hasNext()) {
+					writer.append(',');
+				}
+			}
+			
+			if (tweetIterator.hasNext()) {
+				writer.append('\n');
+			}
+		}		
+	}
+	
+	/*private void preProcessTweets(List<Tweet> tweets) {
 		tokensPerTweet = new HashMap<Long, String[]>();
 		maxNumOfTokens = 0;
 		
@@ -28,11 +81,9 @@ public class CSVSaver2 extends Saver {
 	}
 	
 	@Override
-	protected void saveOutput(File file, List<Tweet> tweets, EmotionDAO emotion) throws IOException {
+	protected void saveOutput(Writer writer, List<Tweet> tweets, EmotionDAO emotion) throws IOException {
 		preProcessTweets(tweets);
 		
-		FileWriter writer = new FileWriter(file);
-
 		writer.append("emotion").append(",");
 		
 		for (int i = 1; i <= maxNumOfTokens; i++) {
@@ -65,9 +116,7 @@ public class CSVSaver2 extends Saver {
 			
 			writer.append("\n");
 		}
-		
-		writer.flush();
-		writer.close();
-	}
+	}*/
+
 
 }

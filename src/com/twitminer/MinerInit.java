@@ -43,7 +43,7 @@ public class MinerInit {
 	
 	private Streamer stream;
 	
-	public static final int MAX_TWEETS = 5;
+	public static final int MAX_TWEETS = 1000;
 	
 	public MinerInit () {
 		listeners = new ArrayList<AuthorizationEventListener>();
@@ -176,19 +176,24 @@ public class MinerInit {
 					
 				};
 				
-				//filter stream with an emotion
-				stream.addChangeListener(happyChange);
-				stream.filterAndAnnotateUntil(MAX_TWEETS, EmotionDAO.HAPPY);
-				stream.removeChangeListener(happyChange);
-				stream.addChangeListener(disgustChange);
-				stream.filterAndAnnotateUntil(MAX_TWEETS, EmotionDAO.DISGUST);
-				stream.removeChangeListener(disgustChange);
-				stream.addChangeListener(sadChange);
-				stream.filterAndAnnotateUntil(MAX_TWEETS, EmotionDAO.SAD);
-				stream.removeChangeListener(sadChange);
-				stream.addChangeListener(surpriseChange);
-				stream.filterAndAnnotateUntil(MAX_TWEETS, EmotionDAO.SURPRISE);
-				stream.removeChangeListener(surpriseChange);
+				try {
+					//filter stream with an emotion
+					stream.addChangeListener(happyChange);
+					stream.filterAndAnnotateUntil(MAX_TWEETS, EmotionDAO.HAPPY);
+					stream.removeChangeListener(happyChange);
+					stream.addChangeListener(disgustChange);
+					stream.filterAndAnnotateUntil(MAX_TWEETS, EmotionDAO.DISGUST);
+					stream.removeChangeListener(disgustChange);
+					stream.addChangeListener(sadChange);
+					stream.filterAndAnnotateUntil(MAX_TWEETS, EmotionDAO.SAD);
+					stream.removeChangeListener(sadChange);
+					stream.addChangeListener(surpriseChange);
+					stream.filterAndAnnotateUntil(MAX_TWEETS, EmotionDAO.SURPRISE);
+					stream.removeChangeListener(surpriseChange);
+				}
+				catch(Exception e) {
+					e.printStackTrace();
+				}
 				
 				fireFinish();
 			}

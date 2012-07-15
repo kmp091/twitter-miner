@@ -1,18 +1,21 @@
 package com.twitminer.util;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
-import com.twitminer.beans.Tweet;
 import com.twitminer.dao.EmotionDAO;
 
 public class ARFFSaver extends Saver {
 
-	@Override
-	protected void saveOutput(File file, List<Tweet> tweets, EmotionDAO emotion) throws IOException {
-		FileWriter writer = new FileWriter(file);
+	public ARFFSaver() {
+		super("Weka ARFF file", "arff");
+	}
+	
+/*	@Override
+	protected void saveOutput(Writer writer, List<Tweet> tweets, EmotionDAO emotion) throws IOException {
 		writer.append("@RELATION tweet\n");
 		writer.append("@ATTRIBUTE tweetMessage STRING\n");
 		writer.append("@ATTRIBUTE class {" + emotion.toString() + "}\n");
@@ -28,8 +31,54 @@ public class ARFFSaver extends Saver {
 				writer.append('\n');				
 			}
 		}
-		writer.flush();
-		writer.close();
+	}*/
+
+	@Override
+	protected void writeHeader(Writer writer, List<TokenizedTweet> tweets,
+			Set<String> allWords, EmotionDAO emotion) throws IOException {
+		writer.append("@RELATION tweet\n");
+		
+		Iterator<String> wordIterator = allWords.iterator();
+		while (wordIterator.hasNext()) {
+			String word = wordIterator.next();
+			
+			writer.append("@ATTRIBUTE ").append(word).append(" ")
+				.append("NUMERIC").append("\n");
+		}
+		
+		writer.append("@ATTRIBUTE class {" + emotion.toString() + "}\n");
+	}
+
+	@Override
+	protected void writePayload(Writer writer, List<TokenizedTweet> tweets,
+			Set<String> allWords, EmotionDAO emotion) throws IOException {
+		writer.append("@DATA\n");
+		
+		Iterator<TokenizedTweet> tweetIterator = tweets.iterator();
+		while (tweetIterator.hasNext()) {
+			TokenizedTweet curTweet = tweetIterator.next();
+			
+			Iterator<String> allWordIterator = allWords.iterator();
+			while (allWordIterator.hasNext()) {
+				String masterWord = allWordIterator.next();
+				
+				if (curTweet.containsWord(masterWord)) {
+					writer.append('1');
+				}
+				else {
+					writer.append('0');
+				}
+				
+				writer.append(',');
+			}
+			
+			String emotionName = emotion.getEmotionById(curTweet.getEmotionID()).getEmotionName();
+			writer.append(emotionName);
+			
+			if (tweetIterator.hasNext()) {
+				writer.append('\n');
+			}
+		}
 	}
 
 }
