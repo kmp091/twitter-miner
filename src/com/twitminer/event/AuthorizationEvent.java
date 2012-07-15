@@ -6,6 +6,10 @@ import twitter4j.auth.RequestToken;
 
 public class AuthorizationEvent extends EventObject {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7871041025672004461L;
 	RequestToken reqToken;
 	
 	public AuthorizationEvent(Object src, RequestToken reqToken) {

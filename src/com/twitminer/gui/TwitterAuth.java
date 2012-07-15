@@ -15,6 +15,10 @@ import javax.swing.JTextField;
 import java.awt.Font;
 
 public class TwitterAuth extends JDialog {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7227750323541277674L;
 	private JTextField tokenField;
 	private JButton accessTwitterButton;
 	private JButton copyUsernameButton;

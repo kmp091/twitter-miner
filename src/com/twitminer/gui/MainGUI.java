@@ -12,7 +12,6 @@ import java.awt.Component;
 import javax.swing.Box;
 import java.awt.Dimension;
 
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import com.twitminer.MinerInit;
@@ -23,12 +22,10 @@ import com.twitminer.event.AuthorizationInputEvent;
 import com.twitminer.event.TaskFinishEvent;
 import com.twitminer.event.listener.AuthorizationInputEventListener;
 import com.twitminer.event.listener.TaskFinishEventListener;
-import com.twitminer.util.CSVSaver;
 import com.twitminer.util.SaverFactory;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 import java.util.List;
 
 import javax.swing.JProgressBar;
