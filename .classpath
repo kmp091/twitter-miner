@@ -24,5 +24,7 @@
 	<classpathentry kind="lib" path="/Users/kevinpanuelos/Documents/workspace/twitMiner/lib/google-api-spelling-java-1.1-with-dependencies/dependencies/jaxb-impl-2.1.5.jar"/>
 	<classpathentry kind="lib" path="/Users/kevinpanuelos/Documents/workspace/twitMiner/lib/google-api-spelling-java-1.1-with-dependencies/dependencies/log4j-1.2.14.jar"/>
 	<classpathentry kind="lib" path="/Users/kevinpanuelos/Documents/workspace/twitMiner/lib/google-api-spelling-java-1.1-with-dependencies/dependencies/stax-api-1.0-2.jar"/>
+	<classpathentry kind="lib" path="/Users/kevinpanuelos/Documents/workspace/twitMiner/lib/jcommon-1.0.17.jar"/>
+	<classpathentry kind="lib" path="/Users/kevinpanuelos/Documents/workspace/twitMiner/lib/jfreechart-1.0.14.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

@@ -1,20 +1,6 @@
 package com.twitminer.stream;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
-import com.twitminer.beans.Tweet;
-import com.twitminer.dao.DAOFactory;
-import com.twitminer.dao.EmoticonDAO;
-import com.twitminer.dao.EmotionDAO;
-import com.twitminer.dao.TweetDAO;
-import com.twitminer.util.TweetCleaner;
 
 import twitter4j.FilterQuery;
 import twitter4j.Status;
@@ -25,109 +11,82 @@ import twitter4j.TwitterStreamFactory;
 import twitter4j.auth.AccessToken;
 import twitter4j.conf.ConfigurationBuilder;
 
-public class Streamer {
-	
+public abstract class Streamer implements StatusListener {
+
 	TwitterStream twitStream;
-	
-	TweetCleaner tweetCleaner;
-	
-	private TweetDAO tweetDAO;
-	
-	private int curEmotion = EmotionDAO.HAPPY;
-	
-	private List<ChangeListener> changeListeners;
 	
 	private AtomicInteger tweetCounter = new AtomicInteger(0);
 	private int tweetsRequested = -1;
 	
-	private AtomicBoolean firingEvent = new AtomicBoolean(false);
-	
-	StatusListener statusListener = new StatusListener(){
-
-		@Override
-		public void onException(Exception arg0) {
-			System.out.println("Connection terminated");
-			arg0.printStackTrace();
-		}
-
-		@Override
-		public void onDeletionNotice(StatusDeletionNotice arg0) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void onScrubGeo(long arg0, long arg1) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void onStatus(Status status) {
-			if (tweetsRequested != -1 && tweetCounter.get() >= tweetsRequested) {
-				System.out.println("Over the requested number");
-			}
-			else {
-				System.out.println(status.getText());
-				//store on db code
-				Calendar cal = Calendar.getInstance();
-				cal.setTime(status.getCreatedAt());
-							
-				String cleanedTweet = tweetCleaner.tokenizeAndCleanTweet(status);				
-				
-				if (cleanedTweet != null && !cleanedTweet.isEmpty() && cleanedTweet.length() > 1) {
-					Tweet store = new Tweet(status.getId(), status.getUser().getId(), cleanedTweet, cal, curEmotion);
-					
-					tweetDAO.insertTweet(store);
-					
-					tweetCounter.incrementAndGet();
-					
-					fireChangeEvent(new ChangeEvent(Integer.toString(tweetCounter.get())));
-					System.out.println("Number of streamed tweets so far: " + tweetCounter);
-				}
-			}
-			
-		}
-
-		@Override
-		public void onTrackLimitationNotice(int numOfLimitedStatuses) {
-			// TODO Auto-generated method stub
-			System.out.println("Limit reached. Stopping...");
-		}
-		
-	};
-	
-	public Streamer() {
-		tweetCleaner = new TweetCleaner();
-		this.changeListeners = new ArrayList<ChangeListener>();
-	}
-	
-	public Streamer(String consumerKey, String consumerSecret, AccessToken token) {
-		this();
+	public Streamer(String consumerKey, String consumerSecret, AccessToken accToken) {
 		ConfigurationBuilder cb = new ConfigurationBuilder();
 		cb.setOAuthConsumerKey(consumerKey)
 		  .setOAuthConsumerSecret(consumerSecret);
 		
-		twitStream = new TwitterStreamFactory(cb.build()).getInstance(token);
-		twitStream.addListener(statusListener);
+		twitStream = new TwitterStreamFactory(cb.build()).getInstance(accToken);
+
+		twitStream.addListener(this);
 		
-		DAOFactory daoFactory = DAOFactory.getInstance(DAOFactory.ARRAY_LIST);
-		tweetDAO = daoFactory.getTweetDAO();
 	}
 	
-	public void filterAndAnnotate(int emotionId, String... filterString) {
-		this.curEmotion = emotionId;
-		this.filter(filterString);
+	@Override
+	public void onException(Exception arg0) {
+		System.out.println("Connection terminated");
+		arg0.printStackTrace();
+	}
+
+	@Override
+	public void onDeletionNotice(StatusDeletionNotice arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onScrubGeo(long arg0, long arg1) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onStatus(Status status) {
+		if (tweetsRequested != -1 && tweetCounter.get() >= tweetsRequested) {
+			System.out.println("Over the requested number");
+		}
+		else {
+			System.out.println(status.getText());
+			
+			if (whileStreaming(status)) {
+				tweetCounter.incrementAndGet();				
+			}
+			
+			System.out.println("Number of streamed tweets so far: " + tweetCounter);
+		}
+		
 	}
 	
-	public void filterAndAnnotate(int emotionId) {
-		System.out.println("Hold on to your pants, we're loading some emoticons :)");
-		DAOFactory daos = DAOFactory.getInstance(DAOFactory.ARRAY_LIST);
-		EmoticonDAO emo = daos.getEmoticonDAO();
-		List<String> emoticons = emo.getEmoticonStringsByEmotion(emotionId);
-		filter(emoticons.toArray(new String[emoticons.size()]));
+	protected int getTweetCounterValue() {
+		return this.tweetCounter.get();
 	}
 	
+	/**Dictate a condition that, if not fulfilled, will not increment the tweet counter
+	 * 
+	 * @param status The status object containing the received status message
+	 * @return the outcome of a condition stated within the method
+	 */
+	protected boolean whileStreaming(Status status) {
+		return true;
+	}
+
+	@Override
+	public void onTrackLimitationNotice(int numOfLimitedStatuses) {
+		// TODO Auto-generated method stub
+		System.out.println("Limit reached. Stopping...");
+	}
+
+	public void shutdown() {
+		twitStream.shutdown();
+	}
+
 	public void filter(String... filterString) {
 		FilterQuery filterQ = new FilterQuery();
 		filterQ.track(filterString);
@@ -136,33 +95,8 @@ public class Streamer {
 		
 	}
 	
-	public void shutdown() {
-		twitStream.shutdown();
-	}
-	
-	public void filterAndAnnotateUntil(int numOfTweets, int emotionId, String... filterString) throws InterruptedException {
-		this.curEmotion = emotionId;
-		this.filterUntil(numOfTweets, filterString);
-	}
-	
-	/**
-	 * 
-	 * @param numOfTweets
-	 * @param emotionId
-	 * @throws InterruptedException 
-	 */
-	public void filterAndAnnotateUntil(int numOfTweets, int emotionId) throws InterruptedException {
-		this.curEmotion = emotionId;
-		System.out.println("Hold on to your pants, we're loading some emoticons :)");
-		DAOFactory daos = DAOFactory.getInstance(DAOFactory.ARRAY_LIST);
-		EmoticonDAO emo = daos.getEmoticonDAO();
-		List<String> emoticons = emo.getEmoticonStringsByEmotion(emotionId);
-		this.filterUntil(numOfTweets, emoticons.toArray(new String[emoticons.size()]));
-	}
-	
 	public void filterUntil(int numOfTweets, String... filterString) throws InterruptedException {
 		this.tweetsRequested = numOfTweets;
-		
 		filter(filterString);
 
 		System.out.println("Don't worry, system hasn't hung: we're just blocking the main thread until");
@@ -177,30 +111,4 @@ public class Streamer {
 		tweetCounter.set(0);
 	}
 	
-	public void addChangeListener (ChangeListener changeListener) {
-		while (this.firingEvent.get()) {
-			
-		}
-		this.changeListeners.add(changeListener);
-	}
-	
-	public void removeChangeListener (ChangeListener changeListener) {
-		while (this.firingEvent.get()) {
-			
-		}
- 		this.changeListeners.remove(changeListener);
-	}
-	
-	private void fireChangeEvent (ChangeEvent evt) {
-		//System.out.println("On change!");
-		this.firingEvent.set(true);
-		for (ChangeListener change : changeListeners) {
-			change.stateChanged(evt);
-		}
-		this.firingEvent.set(false);
-	}
-	
-	public TweetDAO getTweetDAO() {
-		return tweetDAO;
-	}
 }

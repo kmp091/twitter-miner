@@ -4,6 +4,7 @@ import com.twitminer.dao.DAOFactory;
 import com.twitminer.dao.EmoticonDAO;
 import com.twitminer.dao.EmotionDAO;
 import com.twitminer.dao.StopWordDAO;
+import com.twitminer.dao.TokenizedTweetDAO;
 import com.twitminer.dao.TweetDAO;
 
 public class ArrayListDAOFactory extends DAOFactory {
@@ -26,6 +27,11 @@ public class ArrayListDAOFactory extends DAOFactory {
 	@Override
 	public StopWordDAO getStopWordDAO() {
 		return new ArrayListStopWordDAO();
+	}
+
+	@Override
+	public TokenizedTweetDAO getTokenizedTweetDAO() {
+		return new ArrayListTokenizedTweetDAO();
 	}
 
 }

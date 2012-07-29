@@ -1,4 +1,4 @@
-package com.twitminer;
+package com.twitminer.login;
 
 import java.awt.Desktop;
 import java.awt.Toolkit;
@@ -8,18 +8,15 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.URL;
-
 import twitter4j.auth.RequestToken;
 
 import com.twitminer.gui.TwitterAuth;
 
-public class AuthLogic implements ClipboardOwner {
+public class GUIAuthLogic extends AuthLogic implements ClipboardOwner {
 
 	TwitterAuth authDialog;
-	String authCode;
 	
-	public AuthLogic (RequestToken reqToken) {
+	public GUIAuthLogic (RequestToken reqToken) {
 		authDialog = new TwitterAuth();
 		generateUrl(reqToken);
 		assignUserCredentials();
@@ -36,10 +33,10 @@ public class AuthLogic implements ClipboardOwner {
 				Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
 				
 				try {
-					desktop.browse(new URL(reqToken.getAuthorizationURL()).toURI());
-					authDialog.getSecondStepPanel().setVisible(true);
-					authDialog.getThirdStepPanel().setVisible(true);
-					authDialog.getFourthStepPanel().setVisible(true);
+					desktop.browse(getAuthenticationURI(reqToken));
+					//authDialog.getSecondStepPanel().setVisible(true);
+					//authDialog.getThirdStepPanel().setVisible(true);
+					//authDialog.getFourthStepPanel().setVisible(true);
 				}
 				catch (Exception ex) {
 					ex.printStackTrace();
@@ -76,15 +73,11 @@ public class AuthLogic implements ClipboardOwner {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				authCode = authDialog.getTokenField().getText();
+				setAuthenticationCode(authDialog.getTokenField().getText());
 				authDialog.dispose();				
 			}
 			
 		});
-	}
-	
-	public String getAuthToken() {
-		return this.authCode;
 	}
 	
 	private void setClipboardContents (String content) {

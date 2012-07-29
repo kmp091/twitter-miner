@@ -154,46 +154,46 @@ public class ArrayListEmoticonDAO extends EmoticonDAO {
 		tempEmo.setEmoticon(":-))");
 		tempEmo.setEmotionId(1);
 		emoticons.add(tempEmo);
-		tempEmo = new Emoticon();
+		/*tempEmo = new Emoticon();
 		tempEmo.setEmoticonId(29);
 		tempEmo.setEmoticon(">:[");
 		tempEmo.setEmotionId(2);
-		emoticons.add(tempEmo);
-		tempEmo = new Emoticon();
+		emoticons.add(tempEmo);*/
+		/*tempEmo = new Emoticon();
 		tempEmo.setEmoticonId(30);
 		tempEmo.setEmoticon(":-(");
 		tempEmo.setEmotionId(2);
-		emoticons.add(tempEmo);
+		emoticons.add(tempEmo);*/
 		tempEmo = new Emoticon();
 		tempEmo.setEmoticonId(31);
 		tempEmo.setEmoticon(":(");
 		tempEmo.setEmotionId(2);
 		emoticons.add(tempEmo);
-		tempEmo = new Emoticon();
+		/*tempEmo = new Emoticon();
 		tempEmo.setEmoticonId(32);
 		tempEmo.setEmoticon(":-c");
 		tempEmo.setEmotionId(2);
-		emoticons.add(tempEmo);
+		emoticons.add(tempEmo);*/
 		tempEmo = new Emoticon();
 		tempEmo.setEmoticonId(33);
 		tempEmo.setEmoticon(":c");
 		tempEmo.setEmotionId(2);
 		emoticons.add(tempEmo);
-		tempEmo = new Emoticon();
+		/*tempEmo = new Emoticon();
 		tempEmo.setEmoticonId(34);
 		tempEmo.setEmoticon(":-<");
 		tempEmo.setEmotionId(2);
-		emoticons.add(tempEmo);
+		emoticons.add(tempEmo);*/
 		tempEmo = new Emoticon();
 		tempEmo.setEmoticonId(35);
 		tempEmo.setEmoticon(":<");
 		tempEmo.setEmotionId(2);
 		emoticons.add(tempEmo);
-		tempEmo = new Emoticon();
+		/*tempEmo = new Emoticon();
 		tempEmo.setEmoticonId(36);
 		tempEmo.setEmoticon(":-[");
 		tempEmo.setEmotionId(2);
-		emoticons.add(tempEmo);
+		emoticons.add(tempEmo);*/
 		tempEmo = new Emoticon();
 		tempEmo.setEmoticonId(37);
 		tempEmo.setEmoticon(":[");

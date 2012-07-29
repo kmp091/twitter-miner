@@ -1,4 +1,4 @@
-package com.twitminer.util;
+package com.twitminer.beans;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import com.twitminer.beans.Tweet;
 
 import edu.northwestern.at.utils.corpuslinguistics.tokenizer.WordTokenizerFactory;
 
@@ -29,6 +28,20 @@ public class TokenizedTweet {
 		
 		tokens = new HashSet<String>(wordArray);
 		emotion = tweet.getEmotionId();
+	}
+	
+	public TokenizedTweet(Collection<String> tokens) {
+		if (tokens.contains("")) {
+			tokens.remove("");
+		}
+		
+		this.tokens = new HashSet<String> (tokens);
+		emotion = -1;
+	}
+	
+	public TokenizedTweet(Collection<String> tokens, int emotionId) {
+		this(tokens);
+		this.emotion = emotionId;
 	}
 	
 	/**Get all tokens of a tweet
@@ -64,6 +77,20 @@ public class TokenizedTweet {
 	 */
 	public int getEmotionID() {
 		return this.emotion;
+	}
+	
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		Iterator<String> it = this.tokens.iterator();
+		while (it.hasNext()) {
+			sb.append(it.next());
+			
+			if (it.hasNext()) {
+				sb.append("(space)");
+			}
+		}
+		
+		return sb.toString();
 	}
 	
 }

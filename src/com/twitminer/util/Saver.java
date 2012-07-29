@@ -5,7 +5,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -13,7 +15,7 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import com.twitminer.beans.Tweet;
+import com.twitminer.beans.TokenizedTweet;
 import com.twitminer.dao.EmotionDAO;
 import com.twitminer.event.listener.SavedEventListener;
 
@@ -22,7 +24,7 @@ public abstract class Saver {
 	private FileFilter filter;
 	private String ext;
 	
-	private Set<String> allWords;
+//	private Set<String> allWords;
 	
 	private List<SavedEventListener> savedEventListeners;
 	
@@ -33,26 +35,25 @@ public abstract class Saver {
 	}
 	
 	protected Saver() {
-		this.allWords = new HashSet<String>();
+//		this.allWords = new HashSet<String>();
 		filter = new FileNameExtensionFilter("Comma separated values", "csv");
 		this.ext = "csv";
 		savedEventListeners = new ArrayList<SavedEventListener>();
 	}
 	
-	private List<TokenizedTweet> preprocessTweets (List<Tweet> tweets) {
-		List<TokenizedTweet> tokenizedTweets = new ArrayList<TokenizedTweet>();
+	private Set<String> getBagOfWords (List<TokenizedTweet> tweets) {
+		Set<String> wordBag = new HashSet<String>();
 		
-		for (Tweet tweet : tweets) {
-			TokenizedTweet tokenizedTweet = new TokenizedTweet(tweet);
-			
-			tokenizedTweets.add(tokenizedTweet);
-			allWords.addAll(tokenizedTweet.getSetOfTokens());
+		for (TokenizedTweet tweet : tweets) {
+			wordBag.addAll(tweet.getSetOfTokens());
+			System.out.println("Original tweet: " + tweet);
+			System.out.println("Tokens: " + this.commafyCollection(tweet.getSetOfTokens()));
 		}
 		
-		return tokenizedTweets;
+		return wordBag;
 	}
 	
-	public void save(List<Tweet> tweets, EmotionDAO emotion) {
+	public void save(List<TokenizedTweet> tweets, EmotionDAO emotion) {
 		JFileChooser fileChooser = new JFileChooser();
 		if (filter != null) {
 			fileChooser.setFileFilter(filter);			
@@ -62,8 +63,6 @@ public abstract class Saver {
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			
 			this.fireOnSave();
-			
-			List<TokenizedTweet> processedTweets = preprocessTweets(tweets);
 			
 			try {
 				File savedFile;
@@ -75,13 +74,11 @@ public abstract class Saver {
 					savedFile = fileChooser.getSelectedFile();
 				}
 				
-				FileWriter writer = new FileWriter(savedFile);
-				saveOutput(writer, processedTweets, allWords, emotion);
-				writer.close();
+				this.onConfirmSave(savedFile, tweets, emotion);
 				this.fireOnSaveSuccess();
 //				JOptionPane.showMessageDialog(null, "Save successful!");
 			}
-			catch (IOException io) {
+			catch (Exception io) {
 //				JOptionPane.showMessageDialog(null, "<html>Save failed...<br><br>" + io.getMessage() + "</html>");
 				this.fireOnSaveFailed(io);
 			}
@@ -89,22 +86,40 @@ public abstract class Saver {
 		
 	}
 	
+	protected void onConfirmSave(File savedFile, List<TokenizedTweet> tweets, EmotionDAO emotion) throws IOException {
+		Set<String> wordBag = getBagOfWords(tweets);
+		System.out.println("Bag of words: {" + commafyCollection(wordBag) + "}");
+		
+		FileWriter writer = new FileWriter(savedFile);
+		saveOutput(writer, tweets, wordBag, emotion);
+		System.out.println("Closing writer.");
+		writer.close();
+		System.out.println("Save success.");		
+	}
+	
+	protected String commafyCollection(Collection<String> set) {
+		StringBuilder sb = new StringBuilder();
+		Iterator<String> it = set.iterator();
+		while (it.hasNext()) {
+			sb.append(it.next());
+			
+			if (it.hasNext()) {
+				sb.append(',');
+			}
+		}
+		return sb.toString();
+	}
+	
 	protected void saveOutput(Writer writer, final List<TokenizedTweet> tweets, final Set<String> allWords, EmotionDAO emotion) throws IOException {
+		System.out.println("Writing header...");
 		writeHeader(writer, tweets, allWords, emotion);
+		System.out.println("Writing payload...");
 		writePayload(writer, tweets, allWords, emotion);
 	}
 	
 	protected abstract void writeHeader(Writer writer, final List<TokenizedTweet> tweets, final Set<String> allWords, EmotionDAO emotion) throws IOException;
 	
 	protected abstract void writePayload(Writer writer, final List<TokenizedTweet> tweets, final Set<String> allWords, EmotionDAO emotion) throws IOException;
-	
-	protected boolean isInAllWords(String token) {
-		if (allWords.contains(token)) {
-			return true;
-		}
-		
-		return false;
-	}
 	
 	public void addSavedEventListener(SavedEventListener listener) {
 		this.savedEventListeners.add(listener);

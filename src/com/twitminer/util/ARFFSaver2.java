@@ -2,38 +2,24 @@ package com.twitminer.util;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import com.twitminer.beans.Emotion;
 import com.twitminer.beans.TokenizedTweet;
 import com.twitminer.dao.EmotionDAO;
 
-public class ARFFSaver extends Saver {
+public class ARFFSaver2 extends Saver {
 
-	public ARFFSaver() {
+	List<Emotion> emotionSequence;
+	
+	public ARFFSaver2() {
 		super("Weka ARFF file", "arff");
+		this.emotionSequence = new ArrayList<Emotion>();
 	}
 	
-/*	@Override
-	protected void saveOutput(Writer writer, List<Tweet> tweets, EmotionDAO emotion) throws IOException {
-		writer.append("@RELATION tweet\n");
-		writer.append("@ATTRIBUTE tweetMessage STRING\n");
-		writer.append("@ATTRIBUTE class {" + emotion.toString() + "}\n");
-		
-		writer.append("@DATA\n");
-		for (int i = 0; i < tweets.size(); i++) {
-			Tweet tweet = tweets.get(i);
-			
-			writer.append('\'').append(tweet.getText()).append('\'').append(",");
-			writer.append(emotion.getEmotionById(tweet.getEmotionId()).getEmotionName());
-			
-			if (i < tweets.size() - 1) {
-				writer.append('\n');				
-			}
-		}
-	}*/
-
 	@Override
 	protected void writeHeader(Writer writer, List<TokenizedTweet> tweets,
 			Set<String> allWords, EmotionDAO emotion) throws IOException {
@@ -47,7 +33,14 @@ public class ARFFSaver extends Saver {
 				.append("NUMERIC").append("\n");
 		}
 		
-		writer.append("@ATTRIBUTE emotion-class {" + emotion.toString() + "}\n");
+		for (Emotion emo : emotion.getEmotions()) {
+			writer.append("@ATTRIBUTE ").append(emo.getEmotionName())
+				.append("-class {").append(emo.getEmotionName()).append(",others")
+				.append("}\n");
+			
+			emotionSequence.add(emo);
+		}
+		
 	}
 
 	@Override
@@ -73,8 +66,25 @@ public class ARFFSaver extends Saver {
 				writer.append(',');
 			}
 			
-			String emotionName = emotion.getEmotionById(curTweet.getEmotionID()).getEmotionName();
-			writer.append(emotionName);
+			String emotionName;
+			
+			Iterator<Emotion> emoIterator = emotionSequence.iterator();
+			
+			while (emoIterator.hasNext()) {
+				Emotion curEmotion = emoIterator.next();
+				
+				if (curEmotion.getEmotionId() == curTweet.getEmotionID()) {
+					emotionName = curEmotion.getEmotionName();
+				}
+				else {
+					emotionName = "others";
+				}
+				writer.append(emotionName);
+				
+				if (emoIterator.hasNext()) {
+					writer.append(",");					
+				}
+			}
 			
 			if (tweetIterator.hasNext()) {
 				writer.append('\n');

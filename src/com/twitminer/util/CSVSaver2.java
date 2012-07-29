@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import com.twitminer.beans.TokenizedTweet;
 import com.twitminer.dao.EmotionDAO;
 
 public class CSVSaver2 extends Saver {
@@ -20,7 +21,7 @@ public class CSVSaver2 extends Saver {
 	@Override
 	protected void writeHeader(Writer writer, List<TokenizedTweet> tweets,
 			Set<String> allWords, EmotionDAO emotion) throws IOException {
-		writer.append("emotion").append(",");
+		writer.append("emotion-class").append(",");
 		
 		Iterator<String> allWordIterator = allWords.iterator();
 		while (allWordIterator.hasNext()) {

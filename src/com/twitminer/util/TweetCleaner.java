@@ -7,13 +7,16 @@ import java.util.regex.Pattern;
 
 import org.xeustechnologies.googleapi.spelling.Configuration;
 import org.xeustechnologies.googleapi.spelling.Language;
+import org.xeustechnologies.googleapi.spelling.SpellCheckException;
 import org.xeustechnologies.googleapi.spelling.SpellChecker;
 import org.xeustechnologies.googleapi.spelling.SpellCorrection;
 import org.xeustechnologies.googleapi.spelling.SpellRequest;
 import org.xeustechnologies.googleapi.spelling.SpellResponse;
 
+import twitter4j.EntitySupport;
 import twitter4j.HashtagEntity;
 import twitter4j.Status;
+import twitter4j.Tweet;
 import twitter4j.URLEntity;
 import twitter4j.UserMentionEntity;
 
@@ -39,6 +42,8 @@ public class TweetCleaner {
 	List<String> emoticons;
 	EmoticonDAO emoticonDAO;
 	
+	List<String> temporaryStopWords;
+	
 	private LanguageRecognizer lang;
 	private Lemmatizer lemmatizer;
 	SpellChecker checker;
@@ -63,6 +68,7 @@ public class TweetCleaner {
 		
 		DAOFactory daos = DAOFactory.getInstance(DAOFactory.ARRAY_LIST);
 		stopWords = daos.getStopWordDAO().getStopWordStrings();
+		temporaryStopWords = new ArrayList<String>();
 		emoticonDAO = daos.getEmoticonDAO();
 		emoticons = emoticonDAO.getEmoticonStrings();
 		lang = new LanguageRecognizerFactory().newLanguageRecognizer();
@@ -74,8 +80,8 @@ public class TweetCleaner {
 		checker.setLanguage( Language.ENGLISH ); // Use English (default)
 
 		
-		uselessPOS = new String[]{"av", "av-c", "av-d", "av-dc", "av-ds", "av-dx", "av-j", "av-jc",
-				"av-jn", "av-js", "av-n1", "av-s", "avs-jn", "av-vvg", "av-vvn", "av-x", "c-acp",
+		uselessPOS = new String[]{"av", "av-c", "av-d", "av-dc", "av-ds", /*"av-dx",*/ "av-j", "av-jc",
+				"av-jn", "av-js", "av-n1", "av-s", "avs-jn", "av-vvg", "av-vvn", /*"av-x",*/ "c-acp",
 				"cc", "cc-acp", "c-crq", "ccx", "crd", "cs", "cst", "d", "dc", "dg", "ds", "dt",
 				"dx", "fw-fr", "fw-ge", "fw-gr", "fw-it", "fw-la", "fw-mi", "n2", "n-vdg", "n-vhg",
 				"ord", "pi", "pc-acp", "p-acp", "pi2", "pi2x", "pig", "pigx", "pix", "pn22", "pn31", "png11",
@@ -88,37 +94,65 @@ public class TweetCleaner {
 				"vdd", "vdd2", "vdd2x", "vddp", "vddx", "vdg", "vdi", "vdn", "vdp", "vdz", "vdzx", "vh2",
 				"vh2-imp", "vh2x", "vhb", "vhbx", "vhd", "vhd2", "vhdb", "vhdx", "vhg", "vhi", "vhn", "vhp",
 				"vhz", "vhzx", "vm2", "vm2x", "vmb", "vmb1", "vmbx", "vmd", "vmd2", "vmd2x", "vmdp",
-				"vmdx", "vmi", "vmn", "vmp", "negative"};
+				"vmdx", "vmi", "vmn", "vmp"};
 		
-		unlemmatizable = new String[]{"n1", "n1-j", "ng1-an", "n-jn", "njp", "np1", "np-n1"};
+		unlemmatizable = new String[]{"n1", "n1-j", "ng1-an", "n-jn", "njp", "np1", "np-n1", "av", "av-an",
+				"av-dx", "av-jn", "av-x", "j", "j-av"};
 	}
 	
-	private String tweetHousekeeping (Status tweet) {
-		String tweetText = tweet.getText();
+	public TweetCleaner(String... extraBlockedKeywords) {
+		this();
 		
+		addBlockedWords(extraBlockedKeywords);
+	}
+	
+	private String removeNoisyEntities (String tweetText, EntitySupport tweet) {
 		//remove hashtags
 		HashtagEntity[] hashtags = tweet.getHashtagEntities();
-		for (HashtagEntity hashtag : hashtags) {
-			tweetText = tweetText.replaceAll("#" + hashtag.getText(), " ");
+		if (hashtags != null) {
+			for (HashtagEntity hashtag : hashtags) {
+				tweetText = tweetText.replaceAll("#" + hashtag.getText(), " ");
+			}			
 		}
 		
 		URLEntity[] urls = tweet.getURLEntities();
-		for (URLEntity url : urls) {
-			System.out.println("URL: " + url.toString());
-			tweetText = tweetText.replaceAll(url.getDisplayURL(), " ");
-			tweetText = tweetText.replaceAll(url.getURL().toString(), " ");
-			tweetText = tweetText.replaceAll(url.getExpandedURL().toString(), " ");
+		if (urls != null) {
+			for (URLEntity url : urls) {
+				System.out.println("URL: " + url.toString());
+				tweetText = tweetText.replaceAll(url.getDisplayURL(), " ");
+				tweetText = tweetText.replaceAll(url.getURL().toString(), " ");
+				tweetText = tweetText.replaceAll(url.getExpandedURL().toString(), " ");
+			}
 		}
 		
 		UserMentionEntity[] mentions = tweet.getUserMentionEntities();
-		for (UserMentionEntity mention : mentions) {
-			tweetText = tweetText.replaceAll("@" + mention.getScreenName(), " ");
+		if (mentions != null) {
+			for (UserMentionEntity mention : mentions) {
+				tweetText = tweetText.replaceAll("@" + mention.getScreenName(), " ");
+			}
 		}
 		
 		//remove RT keyword
 		tweetText = tweetText.replaceAll("RT : ", " ");
 		tweetText = tweetText.replaceAll("RT", " ");
 		tweetText = tweetText.replaceAll("rt", " ");
+		
+		return tweetText;
+	}
+	
+	private String tweetHousekeeping (Status tweet) {
+		String tweetText = tweet.getText();
+		
+		tweetText = removeNoisyEntities(tweetText, tweet);
+		
+		return tweetText;
+	}
+	
+	private String tweetHousekeeping (Tweet tweet) {
+		String tweetText = tweet.getText();
+		
+		tweetText = removeNoisyEntities(tweetText, tweet);
+		
 		return tweetText;
 	}
 	
@@ -203,12 +237,22 @@ public class TweetCleaner {
 		return stringBuilder.toString();
 	}
 	
-	public String tokenizeAndCleanTweet(Status tweet) {
-		List<Emoticon> emoticonsInTweet = new ArrayList<Emoticon>();
-		
+	public List<String> tokenizeAndCleanTweet(Tweet tweet) {
 		String tweetText = tweetHousekeeping(tweet);
 		
+		return tokenizeAndCleanTweetString(tweetText);
+	}
+	
+	public List<String> tokenizeAndCleanTweet(Status tweet) {
+		String tweetText = tweetHousekeeping(tweet);
+		
+		return tokenizeAndCleanTweetString(tweetText);
+	}
+	
+	private List<String> tokenizeAndCleanTweetString(String tweetText) {
 		tweetText = tweetText.toLowerCase();
+		
+		List<Emoticon> emoticonsInTweet = new ArrayList<Emoticon>();
 		
 		/**EMOTICON STRIP AND COMPARISON**/
 		for (String emo : emoticons) {
@@ -255,7 +299,7 @@ public class TweetCleaner {
 		Iterator<String> it = tokens.listIterator();
 		while (it.hasNext()) {
 			String cur = it.next();
-			if (stopWords.contains(cur) || Pattern.matches("'", cur) || cur.length() == 1) {
+			if (stopWords.contains(cur) || Pattern.matches("'", cur) || cur.length() <= 2) {
 				it.remove();
 			}
 /*			else if (emoticons.contains(cur)) {
@@ -301,7 +345,7 @@ public class TweetCleaner {
 						
 						respelledToken = respelledToken.replaceAll("[^a-zA-Z]", "");
 						
-						if (!cleanedTokens.contains(respelledToken)) {
+						if (!cleanedTokens.contains(respelledToken) && !respelledToken.isEmpty() && !(respelledToken.length() <= 2) && !(this.stopWords.contains(respelledToken))) {
 							cleanedTokens.add(respelledToken);
 						}
 					}
@@ -322,35 +366,67 @@ public class TweetCleaner {
 			List<AdornedWord> tags = this.posTagger.tagSentence(cleanedTokens);
 			
 			Iterator<AdornedWord> iter = tags.iterator();
+			
+			boolean precedingNeg = false;
+			
 			while (iter.hasNext()) {
 				AdornedWord curEntry = iter.next();
 				System.out.println(curEntry.getToken() + " - " + curEntry.getPartsOfSpeech());
 				
-				//automatically remove words with less than 2 characters (likely useless)
-				if (curEntry.getToken().length() <= 2) {
+				//change negative adverbs and negative determiners into N-
+				if (this.isOneOfThePartsOfSpeech(curEntry, new String[] {"av-dx", "av-x"})) {
+					//curEntry.setToken("N-");
 					iter.remove();
+					precedingNeg = true;
+					continue;
+				}
+				
+				//automatically remove words with less than 2 characters (likely useless)
+				//that aren't identified as negative adverbs/determiners (like "no")
+				if (curEntry.getToken().isEmpty() || curEntry.getToken().length() <= 2) {
+					iter.remove();
+					precedingNeg = false;
 					continue;
 				}
 				
 				//remove useless parts of speech
 				if (this.isOneOfThePartsOfSpeech(curEntry, uselessPOS)) {
 					iter.remove();
+					precedingNeg = false;
+					continue;
 				}
+				//lemmatize if POS is not part of the unlemmatizable list
 				else if (!this.isOneOfThePartsOfSpeech(curEntry, unlemmatizable)) {
 					if (!lemmatizer.cantLemmatize(curEntry.getToken())) {
 						curEntry.setToken(lemmatizer.lemmatize(curEntry.getToken()));
 					}
 				}
 				
+				if (curEntry.getToken().length() <= 2) {
+					iter.remove();
+					continue;
+				}
+				
+				//if the preceding token was a negator, add "n-" to a word that it describes
+				//which is usually the word it is next to (unfortunately, this cannot be reliable
+				//especially for some strangely worded phrases
+				if (precedingNeg) {
+					String subject = curEntry.getToken();
+					StringBuilder sb = new StringBuilder();
+					sb.append("n-").append(subject);
+					
+					curEntry.setToken(sb.toString());
+				}
+				
 			}
 			
 //			cleanedTweet.delete(0, cleanedTweet.length());
 			
-			String cleanedTweet = this.wordListToString(cleanedTokens);
+			cleanedTokens = this.adornedListToStringList(tags);
 			
-			System.out.println("Yet another successful tweet: " + cleanedTweet.toString());
+			System.out.println("Yet another successful tweet: " + this.wordListToString(cleanedTokens));
 			
-			return cleanedTweet.toString();
+			return cleanedTokens;
 		}
 		
 		return null;
@@ -401,15 +477,30 @@ public class TweetCleaner {
 		request.setText( token );
 		request.setIgnoreDuplicates( true ); // Ignore duplicates
 
-		SpellResponse spellResponse = checker.check( request );
-
-		SpellCorrection[] corrections = spellResponse.getCorrections();
-		
-		if (corrections != null && corrections.length > 0) {
-			return corrections[0].getWords()[0];
+		try {
+			SpellResponse spellResponse = checker.check( request );
+	
+			SpellCorrection[] corrections = spellResponse.getCorrections();
+			
+			if (corrections != null && corrections.length > 0) {
+				return corrections[0].getWords()[0];
+			}
+		}
+		catch (SpellCheckException ex) {
+			ex.printStackTrace();
 		}
 		
 		return null;
+	}
+	
+	private List<String> adornedListToStringList (List<AdornedWord> words) {
+		List<String> stringList = new ArrayList<String>();
+		
+		for (AdornedWord word : words) {
+			stringList.add(word.getToken());
+		}
+		
+		return stringList;
 	}
 	
 	private String wordListToString(List<String> words) {
@@ -435,6 +526,26 @@ public class TweetCleaner {
 		}
 		
 		return false;
+	}
+	
+	public void addBlockedWords (String... blockedWords) {
+		for (String keyword : blockedWords) {
+			WordTokenizer extraKeywordTokenizer = new WordTokenizerFactory().newWordTokenizer();
+			List<String> words = extraKeywordTokenizer.extractWords(keyword);
+			
+			for (String word : words) {
+				if (!stopWords.contains(word)) {
+					stopWords.add(word);
+					this.temporaryStopWords.add(word);
+				}
+			}
+			extraKeywordTokenizer.close();
+		}
+	}
+	
+	public void removeTemporaryBlockedWords () {
+		this.stopWords.removeAll(this.temporaryStopWords);
+		this.temporaryStopWords.clear();
 	}
 	
 }

@@ -361,10 +361,10 @@ public class ArrayListStopWordDAO extends StopWordDAO {
 		tempStop.setStopWordId(87);
 		tempStop.setStopWord("can");
 		stopWords.add(tempStop);
-		tempStop = new StopWord();
+/*		tempStop = new StopWord();
 		tempStop.setStopWordId(88);
 		tempStop.setStopWord("cannot");
-		stopWords.add(tempStop);
+		stopWords.add(tempStop);*/
 		tempStop = new StopWord();
 		tempStop.setStopWordId(89);
 		tempStop.setStopWord("cant");
@@ -1089,6 +1089,12 @@ public class ArrayListStopWordDAO extends StopWordDAO {
 		tempStop.setStopWordId(269);
 		tempStop.setStopWord("lately");
 		stopWords.add(tempStop);
+		
+		tempStop = new StopWord();
+		tempStop.setStopWordId(630);
+		tempStop.setStopWord("lol");
+		stopWords.add(tempStop);
+		
 		tempStop = new StopWord();
 		tempStop.setStopWordId(270);
 		tempStop.setStopWord("knows");
@@ -1357,10 +1363,10 @@ public class ArrayListStopWordDAO extends StopWordDAO {
 		tempStop.setStopWordId(336);
 		tempStop.setStopWord("ninety");
 		stopWords.add(tempStop);
-		tempStop = new StopWord();
+/*		tempStop = new StopWord();
 		tempStop.setStopWordId(337);
 		tempStop.setStopWord("no");
-		stopWords.add(tempStop);
+		stopWords.add(tempStop);*/
 		tempStop = new StopWord();
 		tempStop.setStopWordId(338);
 		tempStop.setStopWord("nobody");
@@ -1393,10 +1399,10 @@ public class ArrayListStopWordDAO extends StopWordDAO {
 		tempStop.setStopWordId(345);
 		tempStop.setStopWord("normally");
 		stopWords.add(tempStop);
-		tempStop = new StopWord();
+/*		tempStop = new StopWord();
 		tempStop.setStopWordId(346);
 		tempStop.setStopWord("not");
-		stopWords.add(tempStop);
+		stopWords.add(tempStop);*/
 		tempStop = new StopWord();
 		tempStop.setStopWordId(347);
 		tempStop.setStopWord("nothing");
