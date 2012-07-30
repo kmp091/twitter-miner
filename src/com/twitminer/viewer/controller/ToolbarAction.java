@@ -16,11 +16,13 @@ public abstract class ToolbarAction extends AbstractAction {
 
 	public ToolbarAction(String name) {
 		super(name);
+		this.initialize();
 		// TODO Auto-generated constructor stub
 	}
 
 	public ToolbarAction(String name, Icon icon) {
 		super(name, icon);
+		this.initialize();
 		// TODO Auto-generated constructor stub
 	}
 	
@@ -34,10 +36,14 @@ public abstract class ToolbarAction extends AbstractAction {
 		setMnemonic(mnemonic);
 	}
 	
+	protected void initialize() {
+		//do nothing
+	}
+	
 	public void setTooltip(String tooltipText) {
 		putValue(SHORT_DESCRIPTION, tooltipText);
 	}
-	
+		
 	public void setMnemonic(int mnemonic) {
 		putValue(MNEMONIC_KEY, mnemonic);
 	}
@@ -51,19 +57,19 @@ public abstract class ToolbarAction extends AbstractAction {
 	}
 	
 	public String getTooltip() {
-		return (String)this.getValue(SHORT_DESCRIPTION);
+		return (String)getValue(SHORT_DESCRIPTION);
 	}
 	
 	public String getName() {
-		return (String)this.getValue(NAME);
+		return (String)getValue(NAME);
 	}
 	
 	public int getMnemonic() {
-		return (Integer)this.getValue(MNEMONIC_KEY);
+		return (Integer)getValue(MNEMONIC_KEY);
 	}
 	
 	public Icon getIcon() {
-		return (Icon)this.getValue(LARGE_ICON_KEY);
+		return (Icon)getValue(LARGE_ICON_KEY);
 	}
 
 }

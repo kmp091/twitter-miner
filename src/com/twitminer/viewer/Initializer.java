@@ -1,17 +1,14 @@
 package com.twitminer.viewer;
 
-public class Initializer {
+import com.twitminer.viewer.controller.TwitviewerController;
 
-	public Initializer() {
-		// TODO Auto-generated constructor stub
-	}
+public class Initializer {
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
+		TwitviewerController.run();
 	}
 
 }

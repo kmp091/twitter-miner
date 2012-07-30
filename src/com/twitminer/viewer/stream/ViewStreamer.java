@@ -24,9 +24,10 @@ public class ViewStreamer extends Streamer {
 	
 	private TweetCleaner tweetCleaner;
 	private TweetDAO tweetDAO;
+	private EmotionDAO emotionDAO;
 	private List<ChangeListener> listeners;
 	
-	public ViewStreamer(String consumerKey, String consumerSecret, AccessToken token, TweetDAO tweetStorage, TweetCleaner tweetCleaner) {
+	public ViewStreamer(String consumerKey, String consumerSecret, AccessToken token, TweetDAO tweetStorage, EmotionDAO emotionStorage, TweetCleaner tweetCleaner) {
 		super(consumerKey, consumerSecret, token);
 		
 		if (tweetCleaner == null) {
@@ -41,6 +42,13 @@ public class ViewStreamer extends Streamer {
 		}
 		else {
 			this.tweetDAO = tweetStorage;
+		}
+		
+		if (emotionStorage == null) {
+			this.emotionDAO = DAOFactory.getInstance(DAOFactory.ARRAY_LIST).getEmotionDAO();
+		}
+		else {
+			this.emotionDAO = emotionStorage;
 		}
 		
 		this.listeners = new ArrayList<ChangeListener>();
@@ -61,13 +69,12 @@ public class ViewStreamer extends Streamer {
 		
 		List<String> tokens = tweetCleaner.tokenizeAndCleanTweet(status);
 		if (tokens != null && tokens.size() > 0) {
-			//TokenizedTweet tokenizedTweet = new TokenizedTweet(tokens);
+			TokenizedTweet tokenizedTweet = new TokenizedTweet(tokens);
 			
 			//classification code
-			//Emotion emotion = ClassifierFactory.getInstance().classifyEmotion(tokenizedTweet);
+			Emotion emotion = ClassifierFactory.getInstance(emotionDAO).classifyEmotion(tokenizedTweet);
 		
-			//toBeStored.setEmotionId(emotion.getEmotionId());
-			toBeStored.setEmotionId(EmotionDAO.HAPPY);
+			toBeStored.setEmotionId(emotion.getEmotionId());
 			
 			tweetDAO.insertTweet(toBeStored);
 			

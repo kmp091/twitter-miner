@@ -3,7 +3,10 @@ package com.twitminer.viewer.controller;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -13,11 +16,13 @@ import javax.swing.event.ChangeListener;
 
 import com.twitminer.beans.Tweet;
 import com.twitminer.dao.DAOFactory;
+import com.twitminer.dao.EmotionDAO;
 import com.twitminer.dao.TweetDAO;
 import com.twitminer.login.Authentication;
 import com.twitminer.util.TweetCleaner;
 import com.twitminer.viewer.gui.TwitViewerFrame;
 import com.twitminer.viewer.gui.images.ImageUtil;
+import com.twitminer.viewer.mood.MoodManager;
 import com.twitminer.viewer.prefs.TwitViewerSettings;
 import com.twitminer.viewer.stream.ViewStreamer;
 
@@ -31,22 +36,41 @@ public class TwitviewerController {
 	private TwitViewerFrame view;
 	private ViewStreamer stream;
 	private TweetDAO tweetDAO;
+	private EmotionDAO emotionDAO;
 	private TweetCleaner tweetCleaner;
+	private MoodManager moodMgr;
+	private ScheduledThreadPoolExecutor liveMoodUpdater;
 	
 	private Tweet currentTweet;
 	
 	private ToolbarAction startStreamAction;
 	private ToolbarAction stopStreamAction;
 	
+	private Runnable updateAction = new Runnable() {
+
+		@Override
+		public void run() {
+			int emotionId = moodMgr.getPredominantMoodId();
+			view.setCurrentMood(emotionId);
+			
+			//add to chart
+			view.addEmotionToChart(Calendar.getInstance(), emotionId);
+		}
+		
+	};
+	
 	public TwitviewerController() {
+		DAOFactory daoFactory = DAOFactory.getInstance(DAOFactory.ARRAY_LIST);
+		tweetDAO = daoFactory.getTweetDAO();
+		emotionDAO = daoFactory.getEmotionDAO();
 		twitterInstance = new TwitterFactory().getInstance();
-		view = new TwitViewerFrame();
-		tweetDAO = DAOFactory.getInstance(DAOFactory.ARRAY_LIST).getTweetDAO();
+		view = new TwitViewerFrame(emotionDAO);
 		currentTweet = null;
+		moodMgr = new MoodManager(emotionDAO);
 		tweetCleaner = new TweetCleaner();
 		try {
 			twitterInstance = Authentication.setUpTwitterInstance(twitterInstance);
-			stream = new ViewStreamer(Authentication.CONSUMER_KEY, Authentication.CONSUMER_SECRET, twitterInstance.getOAuthAccessToken(), tweetDAO, tweetCleaner);
+			stream = new ViewStreamer(Authentication.CONSUMER_KEY, Authentication.CONSUMER_SECRET, twitterInstance.getOAuthAccessToken(), tweetDAO, emotionDAO, tweetCleaner);
 		} catch (TwitterException e1) {
 			JOptionPane.showMessageDialog(view, "<html>In order to use this application, you have to be connected to the Internet." +
 					"<br>Please re-run the application.</html>");
@@ -54,6 +78,8 @@ public class TwitviewerController {
 			System.exit(1);
 		}	
 		initialize();
+		
+		this.liveMoodUpdater = new ScheduledThreadPoolExecutor(1);
 	}
 	
 	private void initialize() {
@@ -71,6 +97,8 @@ public class TwitviewerController {
 				if (currentTweet == null || autoscroll) {
 					Tweet receivedStatus = (Tweet)e.getSource();
 					setCurrentTweet(receivedStatus);
+					moodMgr.addTweet(receivedStatus);
+//					view.addEmotionToChart(receivedStatus.getDateCreated(), /*receivedStatus.getEmotionId()*/ new Random().nextInt(3) + 1);
 				}
 			}
 			
@@ -137,6 +165,8 @@ public class TwitviewerController {
 				stream.filter("Harry Potter");
 				this.setEnabled(false);
 				stopStreamAction.setEnabled(true);
+				setupMoodUpdater();	
+				view.startChart();
 			}
 			
 		};
@@ -150,22 +180,37 @@ public class TwitviewerController {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				stream.shutdown();
 				this.setEnabled(false);
-				startStreamAction.setEnabled(true);
+				
+				Thread shutDown = new Thread(new Runnable() {				
+					@Override
+					public void run() {
+						stream.shutdown();
+						shutDownMoodUpdater();
+						startStreamAction.setEnabled(true);
+						view.stopChart();
+					}
+				});
+				
+				shutDown.start();
 			}
 			
 		};		
 		
 		stopStreamAction.setEnabled(false);
 		
-		ToolbarAction autoUpdateAction = new ToolbarAction("Turn On Autoscroll", new ImageIcon(TwitviewerController.class.getResource(ImageUtil.ROOT + "autoscroll-on.png")), "TURN ON AUTOSCROLL: The newest tweet is automatically displayed when this is turned on (this does not affect how the chart updates).") {
+		ToolbarAction autoUpdateAction = new ToolbarAction("Autoscroll Setting",
+				new ImageIcon(TwitviewerController.class.getResource(ImageUtil.ROOT + (TwitViewerSettings.getAutoScrollSetting() ? "autoscroll-off.png" : "autoscroll-on.png")))) {
 
 			/**
 			 * 
 			 */
 			private static final long serialVersionUID = 1L;
 
+			protected void initialize() {
+				setActionProperties(TwitViewerSettings.getAutoScrollSetting());
+			}
+			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				if (TwitViewerSettings.getAutoScrollSetting()) {
@@ -191,16 +236,24 @@ public class TwitviewerController {
 					this.setName("Turn On Autoscroll");
 					this.setTooltip("TURN ON AUTOSCROLL: The newest tweet is automatically displayed when this is turned on (this does not affect how the chart updates).");
 //					stream.removeChangeListener(dynamicDisplay);
-					view.getNextButton().setEnabled(true);
-					view.getPreviousButton().setEnabled(true);
+					if (!tweetDAO.getTweets().isEmpty()) {
+						view.getNextButton().setEnabled(true);
+						view.getPreviousButton().setEnabled(true);
+					}
 				}
 
 			}
 			
 		};
 		
-		ToolbarAction hideChartAction = new ToolbarAction("Hide Chart", new ImageIcon(TwitviewerController.class.getResource(ImageUtil.ROOT + "show-graph.png")), "The sentiment over time chart is shown when this is turned on and hidden when turned off.") {
+		ToolbarAction hideChartAction = new ToolbarAction(
+				TwitViewerSettings.getChartVisibilitySetting() ? "Hide Chart" : "Show Chart", 
+				new ImageIcon(TwitviewerController.class.getResource(ImageUtil.ROOT + "show-graph.png"))) {
 
+			protected void initialize() {
+				setActionProperties(TwitViewerSettings.getChartVisibilitySetting());
+			}
+			
 			/**
 			 * 
 			 */
@@ -220,14 +273,18 @@ public class TwitviewerController {
 				TwitViewerSettings.setChartVisibilitySetting(chartVisibleSetting);
 				if (chartVisibleSetting) {
 					this.setName("Hide Chart");
-					view.getBottomView().setVisible(false);
-					view.getTopView().add(view.getMoodPanel());
+					this.setTooltip("HIDE CHART: The sentiment over time chart is hidden.");
+					//view.getTopView().remove(view.getMoodPanel());
+					//view.getBottomView().add(view.getMoodPanel());
+					view.getBottomView().setVisible(true);
+					//view.setSize(new Dimension(view.getSize().width, view.getSize().height + view.getBottomView().getSize().height));
 				}
 				else {
 					this.setName("Show Chart");
-					view.getTopView().remove(view.getMoodPanel());
-					view.getBottomView().add(view.getMoodPanel());
-					view.getBottomView().setVisible(true);
+					this.setTooltip("SHOW CHART: The sentiment over time chart is shown.");
+					view.getBottomView().setVisible(false);
+					//view.getTopView().add(view.getMoodPanel());
+					//xview.setSize(new Dimension(view.getPreferredSize().width, view.getPreferredSize().height - view.getBottomView().getSize().height));
 				}
 			}
 			
@@ -267,6 +324,14 @@ public class TwitviewerController {
 		hideChartButton.setVerticalAlignment(JButton.BOTTOM);
 	}
 	
+	private void setupMoodUpdater() {
+		this.liveMoodUpdater.scheduleWithFixedDelay(updateAction, 2 * 1000, moodMgr.getWindowSizeInMillis(), TimeUnit.MILLISECONDS);
+	}
+	
+	private void shutDownMoodUpdater() {
+		this.liveMoodUpdater.shutdown();
+	}
+	
 	private void setCurrentTweet(Tweet curTweet) {
 		this.currentTweet = curTweet;
 		view.setCurrentTweet(curTweet, twitterInstance);
@@ -288,8 +353,4 @@ public class TwitviewerController {
 		twitviewer.view.setVisible(true);
 	}
 	
-	public static void main(String[] args) {
-		TwitviewerController.run();
-	}
-
 }

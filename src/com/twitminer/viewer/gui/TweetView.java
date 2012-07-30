@@ -5,8 +5,6 @@ import javax.swing.JPanel;
 import javax.swing.BoxLayout;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import javax.swing.border.LineBorder;
-import java.awt.Color;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 
@@ -58,12 +56,12 @@ public class TweetView extends JPanel {
 		add(tweetContent);
 		tweetContent.setLayout(new BoxLayout(tweetContent, BoxLayout.Y_AXIS));
 		
-		userInfoLabel = new JLabel("UserID - User Name");
+		userInfoLabel = new JLabel("The user name is shown here.");
 		userInfoLabel.setPreferredSize(new Dimension(126, 30));
 		userInfoLabel.setMaximumSize(new Dimension(32767, 45));
 		tweetContent.add(userInfoLabel);
 		
-		tweetTextLabel = new JLabel("Tweet content");
+		tweetTextLabel = new JLabel("<html>The user's tweet is shown here in its full form. Press Start in the toolbar to start viewing tweets.</html>");
 		tweetTextLabel.setHorizontalTextPosition(SwingConstants.LEADING);
 		tweetTextLabel.setHorizontalAlignment(SwingConstants.LEFT);
 		tweetTextLabel.setMinimumSize(new Dimension(60, 16));
@@ -80,14 +78,14 @@ public class TweetView extends JPanel {
 		tweetContent.add(miscInfoPanel);
 		miscInfoPanel.setLayout(new BoxLayout(miscInfoPanel, BoxLayout.X_AXIS));
 		
-		dateTimeLabel = new JLabel("Date and time");
+		dateTimeLabel = new JLabel("Date & time posted");
 		miscInfoPanel.add(dateTimeLabel);
 		dateTimeLabel.setPreferredSize(new Dimension(40, 30));
 		dateTimeLabel.setHorizontalAlignment(SwingConstants.LEFT);
 		dateTimeLabel.setToolTipText("Date and time metadata");
 		dateTimeLabel.setMaximumSize(new Dimension(16383, 16));
 		
-		lblMood = new JLabel("Mood");
+		lblMood = new JLabel("Emotion");
 		lblMood.setHorizontalAlignment(SwingConstants.RIGHT);
 		lblMood.setPreferredSize(new Dimension(110, 16));
 		lblMood.setMaximumSize(new Dimension(100, 16));

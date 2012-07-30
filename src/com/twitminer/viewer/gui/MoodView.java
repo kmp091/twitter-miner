@@ -7,6 +7,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 
+import com.twitminer.dao.EmotionDAO;
 import com.twitminer.viewer.gui.images.ImageUtil;
 
 import java.awt.Dimension;
@@ -24,12 +25,7 @@ public class MoodView extends JPanel {
 	private ImageIcon disgustedIcon;
 	private ImageIcon surprisedIcon;
 	
-	JLabel lblMood;
-	
-	public static final int HAPPY = 1;
-	public static final int SAD = 2;
-	public static final int DISGUST = 3;
-	public static final int SURPRISED = 4;
+	private JLabel lblMood;
 	
 	/**
 	 * Create the panel.
@@ -45,10 +41,11 @@ public class MoodView extends JPanel {
 		lblPredominantMood.setHorizontalTextPosition(SwingConstants.LEADING);
 		add(lblPredominantMood);
 		
-		lblMood = new JLabel("MOOD");
+		lblMood = new JLabel("<html>The predominant mood among Twitter users is shown here.</html>");
+		lblMood.setVerticalTextPosition(SwingConstants.BOTTOM);
 		lblMood.setHorizontalAlignment(SwingConstants.CENTER);
-		lblMood.setHorizontalTextPosition(SwingConstants.LEADING);
-		lblMood.setMaximumSize(new Dimension(32767, 16));
+		lblMood.setHorizontalTextPosition(SwingConstants.CENTER);
+		lblMood.setMaximumSize(new Dimension(32767, 32767));
 		add(lblMood);
 
 		happyIcon = new ImageIcon(MoodView.class.getResource(ImageUtil.ROOT + "happy-face.png"));
@@ -59,21 +56,22 @@ public class MoodView extends JPanel {
 	
 	public void setMoodDisplay(int mood) {
 		switch(mood) {
-		case HAPPY:
+		case EmotionDAO.HAPPY:
 			this.lblMood.setIcon(happyIcon);
 			this.lblMood.setText("Happy");
-		
-		case SAD:
+			break;
+		case EmotionDAO.SAD:
 			this.lblMood.setIcon(sadIcon);
 			this.lblMood.setText("Sad");
-		
-		case DISGUST:
+			break;
+		case EmotionDAO.DISGUST:
 			this.lblMood.setIcon(disgustedIcon);
 			this.lblMood.setText("Disgusted");
-			
-		case SURPRISED:
+			break;
+		case EmotionDAO.SURPRISE:
 			this.lblMood.setIcon(surprisedIcon);
 			this.lblMood.setText("Surprised");
+			break;
 		}
 	}
 	
