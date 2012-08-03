@@ -10,6 +10,7 @@ import javax.swing.border.BevelBorder;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.util.Date;
+import java.util.List;
 
 import javax.swing.Box;
 
@@ -92,6 +93,10 @@ public class TweetViewer extends JPanel {
 		this.tweetContent.setDetails(tweet, twitterInstance);
 	}
 	
+	public void setDetails(Tweet tweet, Twitter twitterInstance, List<String> tokens) {
+		this.tweetContent.setDetails(tweet, twitterInstance, tokens);
+	}
+	
 	public void setMoodDetails(int emotion) {
 		this.tweetContent.setMoodDetails(emotion);
 	}
@@ -102,6 +107,10 @@ public class TweetViewer extends JPanel {
 	
 	public void setUserDetails(User user) {
 		this.tweetContent.setUserDetails(user);
+	}
+	
+	public void setTokensConsidered(List<String> tokens) {
+		this.tweetContent.setTokensConsidered(tokens);
 	}
 	
 	public JButton getNextButton() {

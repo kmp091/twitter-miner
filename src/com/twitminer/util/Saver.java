@@ -15,6 +15,7 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import com.twitminer.beans.Emotion;
 import com.twitminer.beans.TokenizedTweet;
 import com.twitminer.dao.EmotionDAO;
 import com.twitminer.event.listener.SavedEventListener;
@@ -51,6 +52,54 @@ public abstract class Saver {
 		}
 		
 		return wordBag;
+	}
+	
+	public void saveMultiple(List<TokenizedTweet> tweets, EmotionDAO emotion) {
+		JFileChooser fileChooser = new JFileChooser();
+		if (filter != null) {
+			fileChooser.setFileFilter(filter);
+		}
+		
+		int returnVal = fileChooser.showSaveDialog(null);
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			this.fireOnSave();
+			
+			try {
+				File happyFile;
+				File sadFile;
+				File surprisedFile;
+				File disgustFile;
+				
+				if (!fileChooser.getSelectedFile().getName().endsWith("." + ext)) {
+					File selectedFile = fileChooser.getSelectedFile();
+					String fileName = selectedFile.getName();
+					
+					happyFile = new File(selectedFile.getParent(), fileName + "-happy" + "." + ext);
+					sadFile = new File(selectedFile.getParent(), fileName + "-sad" + "." + ext);
+					surprisedFile = new File(selectedFile.getParent(), fileName + "-surprised" + "." + ext);
+					disgustFile = new File(selectedFile.getParent(), fileName + "-disgust" + "." + ext);
+				}
+				else {
+					File selectedFile = fileChooser.getSelectedFile();
+					String fileName = fileChooser.getSelectedFile().getName();
+					int extensionIndex = fileName.lastIndexOf("." + ext);
+					String newFileName = fileName.substring(0, extensionIndex);
+					
+					happyFile = new File(selectedFile.getParent(), newFileName + "-happy" + "." + ext);
+					sadFile = new File(selectedFile.getParent(), newFileName + "-sad" + "." + ext);
+					surprisedFile = new File(selectedFile.getParent(), newFileName + "-surprised" + "." + ext);
+					disgustFile = new File(selectedFile.getParent(), newFileName + "-disgust" + "." + ext);
+				}
+				
+				this.onConfirmSave(happyFile, tweets, emotion.getEmotionById(EmotionDAO.HAPPY));
+				this.onConfirmSave(sadFile, tweets, emotion.getEmotionById(EmotionDAO.SAD));
+				this.onConfirmSave(surprisedFile, tweets, emotion.getEmotionById(EmotionDAO.SURPRISE));
+				this.onConfirmSave(disgustFile, tweets, emotion.getEmotionById(EmotionDAO.DISGUST));
+				this.fireOnSaveSuccess();
+			} catch (Exception io) {
+				this.fireOnSaveFailed(io);
+			}
+		}
 	}
 	
 	public void save(List<TokenizedTweet> tweets, EmotionDAO emotion) {
@@ -97,6 +146,17 @@ public abstract class Saver {
 		System.out.println("Save success.");		
 	}
 	
+	protected void onConfirmSave(File savedFile, List<TokenizedTweet> tweets, Emotion emotion) throws IOException {
+		Set<String> wordBag = getBagOfWords(tweets);
+		System.out.println("Bag of words: {" + commafyCollection(wordBag) + "}");
+		
+		FileWriter writer = new FileWriter(savedFile);
+		saveSingleClassOutput(writer, tweets, wordBag, emotion);
+		System.out.println("Closing writer.");
+		writer.close();
+		System.out.println("Save success.");		
+	}
+	
 	protected String commafyCollection(Collection<String> set) {
 		StringBuilder sb = new StringBuilder();
 		Iterator<String> it = set.iterator();
@@ -110,12 +170,23 @@ public abstract class Saver {
 		return sb.toString();
 	}
 	
+	protected void saveSingleClassOutput(Writer writer, final List<TokenizedTweet> tweets, final Set<String> allWords, Emotion emotion) throws IOException {
+		System.out.println("Writing header...");
+		this.writeHeader(writer, tweets, allWords, emotion);
+		System.out.println("Writing payload...");
+		this.writePayload(writer, tweets, allWords, emotion);
+	}
+	
 	protected void saveOutput(Writer writer, final List<TokenizedTweet> tweets, final Set<String> allWords, EmotionDAO emotion) throws IOException {
 		System.out.println("Writing header...");
 		writeHeader(writer, tweets, allWords, emotion);
 		System.out.println("Writing payload...");
 		writePayload(writer, tweets, allWords, emotion);
 	}
+	
+	protected abstract void writeHeader(Writer writer, final List<TokenizedTweet> tweets, final Set<String> allWords, Emotion emotion) throws IOException;
+	
+	protected abstract void writePayload(Writer writer, final List<TokenizedTweet> tweets, final Set<String> allWords, Emotion emotion) throws IOException;
 	
 	protected abstract void writeHeader(Writer writer, final List<TokenizedTweet> tweets, final Set<String> allWords, EmotionDAO emotion) throws IOException;
 	

@@ -535,7 +535,7 @@ public class TweetCleaner {
 			
 			for (String word : words) {
 				if (!stopWords.contains(word)) {
-					stopWords.add(word);
+					stopWords.add(word.toLowerCase());
 					this.temporaryStopWords.add(word);
 				}
 			}

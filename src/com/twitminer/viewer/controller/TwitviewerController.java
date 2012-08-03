@@ -3,6 +3,8 @@ package com.twitminer.viewer.controller;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -14,12 +16,16 @@ import javax.swing.JOptionPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.twitminer.beans.TokenizedTweet;
 import com.twitminer.beans.Tweet;
 import com.twitminer.dao.DAOFactory;
 import com.twitminer.dao.EmotionDAO;
+import com.twitminer.dao.TokenizedTweetDAO;
 import com.twitminer.dao.TweetDAO;
 import com.twitminer.login.Authentication;
+import com.twitminer.util.TweetAndTokens;
 import com.twitminer.util.TweetCleaner;
+import com.twitminer.viewer.algorithm.ClassifierFactory;
 import com.twitminer.viewer.gui.TwitViewerFrame;
 import com.twitminer.viewer.gui.images.ImageUtil;
 import com.twitminer.viewer.mood.MoodManager;
@@ -36,6 +42,7 @@ public class TwitviewerController {
 	private TwitViewerFrame view;
 	private ViewStreamer stream;
 	private TweetDAO tweetDAO;
+	private TokenizedTweetDAO tokenizedTweetDAO;
 	private EmotionDAO emotionDAO;
 	private TweetCleaner tweetCleaner;
 	private MoodManager moodMgr;
@@ -45,6 +52,14 @@ public class TwitviewerController {
 	
 	private ToolbarAction startStreamAction;
 	private ToolbarAction stopStreamAction;
+	
+	private AlgorithmSelectController algoSelector;
+	
+	private JButton selectAlgoButton;
+	private JButton hideChartButton;
+	private JButton autoUpdateButton;
+	private JButton stopButton;
+	private JButton startButton;
 	
 	private Runnable updateAction = new Runnable() {
 
@@ -63,6 +78,7 @@ public class TwitviewerController {
 		DAOFactory daoFactory = DAOFactory.getInstance(DAOFactory.ARRAY_LIST);
 		tweetDAO = daoFactory.getTweetDAO();
 		emotionDAO = daoFactory.getEmotionDAO();
+		tokenizedTweetDAO = daoFactory.getTokenizedTweetDAO();
 		twitterInstance = new TwitterFactory().getInstance();
 		view = new TwitViewerFrame(emotionDAO);
 		currentTweet = null;
@@ -70,16 +86,19 @@ public class TwitviewerController {
 		tweetCleaner = new TweetCleaner();
 		try {
 			twitterInstance = Authentication.setUpTwitterInstance(twitterInstance);
-			stream = new ViewStreamer(Authentication.CONSUMER_KEY, Authentication.CONSUMER_SECRET, twitterInstance.getOAuthAccessToken(), tweetDAO, emotionDAO, tweetCleaner);
+			stream = new ViewStreamer(Authentication.CONSUMER_KEY, Authentication.CONSUMER_SECRET, twitterInstance.getOAuthAccessToken(), tweetDAO, emotionDAO, tweetCleaner, ClassifierFactory.SMO);
 		} catch (TwitterException e1) {
 			JOptionPane.showMessageDialog(view, "<html>In order to use this application, you have to be connected to the Internet." +
 					"<br>Please re-run the application.</html>");
 			e1.printStackTrace();
 			System.exit(1);
 		}	
+
+		this.algoSelector = new AlgorithmSelectController();
+		
 		initialize();
 		
-		this.liveMoodUpdater = new ScheduledThreadPoolExecutor(1);
+		this.liveMoodUpdater = new ScheduledThreadPoolExecutor(2);
 	}
 	
 	private void initialize() {
@@ -95,8 +114,10 @@ public class TwitviewerController {
 				}
 				
 				if (currentTweet == null || autoscroll) {
-					Tweet receivedStatus = (Tweet)e.getSource();
-					setCurrentTweet(receivedStatus);
+					TweetAndTokens received = (TweetAndTokens)e.getSource();
+					Tweet receivedStatus = received.getTweet();
+					TokenizedTweet receivedTokens = received.getTokens();
+					setCurrentTweet(receivedStatus, receivedTokens);
 					moodMgr.addTweet(receivedStatus);
 //					view.addEmotionToChart(receivedStatus.getDateCreated(), /*receivedStatus.getEmotionId()*/ new Random().nextInt(3) + 1);
 				}
@@ -111,6 +132,7 @@ public class TwitviewerController {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				List<Tweet> allTweets = tweetDAO.getTweets();
+				List<TokenizedTweet> allTokenizedTweets = tokenizedTweetDAO.getTweets();
 				
 				int curTweetIndex = allTweets.indexOf(currentTweet);
 				if (curTweetIndex != -1) {
@@ -119,7 +141,7 @@ public class TwitviewerController {
 						//do nothing
 					}
 					else {
-						setCurrentTweet(allTweets.get(curTweetIndex - 1));						
+						setCurrentTweet(allTweets.get(curTweetIndex - 1), allTokenizedTweets.get(curTweetIndex - 1));						
 					}
 				}
 				else {
@@ -167,6 +189,7 @@ public class TwitviewerController {
 				stopStreamAction.setEnabled(true);
 				setupMoodUpdater();	
 				view.startChart();
+				selectAlgoButton.setEnabled(false);
 			}
 			
 		};
@@ -186,9 +209,10 @@ public class TwitviewerController {
 					@Override
 					public void run() {
 						stream.shutdown();
-						shutDownMoodUpdater();
+						//shutDownMoodUpdater();
 						startStreamAction.setEnabled(true);
 						view.stopChart();
+						selectAlgoButton.setEnabled(true);
 					}
 				});
 				
@@ -290,11 +314,28 @@ public class TwitviewerController {
 			
 		};
 		
+		ToolbarAction selectAlgorithmAction = new ToolbarAction(
+				"Select Algorithm", new ImageIcon(TwitviewerController.class.getResource(ImageUtil.ROOT + "algorithm.png"))) {
+
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void actionPerformed(ActionEvent arg0) {
+						algoSelector.setAlgoGUI();
+						updateAlgorithmButtonLabel(algoSelector.getCurrentAlgo());
+					}
+			
+		};
+		
 		//initialize toolbar with actions
-		JButton startButton = view.getToolbar().add(startStreamAction);
-		JButton stopButton = view.getToolbar().add(stopStreamAction);
-		JButton autoUpdateButton = view.getToolbar().add(autoUpdateAction);
-		JButton hideChartButton = view.getToolbar().add(hideChartAction);
+		 startButton = view.getToolbar().add(startStreamAction);
+		 stopButton = view.getToolbar().add(stopStreamAction);
+		 autoUpdateButton = view.getToolbar().add(autoUpdateAction);
+		 hideChartButton = view.getToolbar().add(hideChartAction);
+		 selectAlgoButton = view.getToolbar().add(selectAlgorithmAction);
 		
 		/*startButton.setText(startStreamAction.getName());
 		startButton.setToolTipText(startStreamAction.getTooltip());
@@ -312,40 +353,83 @@ public class TwitviewerController {
 		stopButton.setPreferredSize(new Dimension(64, 150));
 		autoUpdateButton.setPreferredSize(new Dimension(64, 150));
 		hideChartButton.setPreferredSize(new Dimension(64, 150));
+		selectAlgoButton.setPreferredSize(new Dimension(64, 150));
 		
 		startButton.setHorizontalAlignment(JButton.CENTER);
 		stopButton.setHorizontalAlignment(JButton.CENTER);
 		autoUpdateButton.setHorizontalAlignment(JButton.CENTER);
 		hideChartButton.setHorizontalAlignment(JButton.CENTER);
+		selectAlgoButton.setHorizontalAlignment(JButton.CENTER);
 		
 		startButton.setVerticalAlignment(JButton.BOTTOM);
 		stopButton.setVerticalAlignment(JButton.BOTTOM);
 		autoUpdateButton.setVerticalAlignment(JButton.BOTTOM);
 		hideChartButton.setVerticalAlignment(JButton.BOTTOM);
+		selectAlgoButton.setVerticalAlignment(JButton.BOTTOM);
+		
+		selectAlgoButton.setHorizontalTextPosition(JButton.RIGHT);
+		selectAlgoButton.setVerticalTextPosition(JButton.CENTER);
+		
+		updateAlgorithmButtonLabel(this.algoSelector.getCurrentAlgo());
+	}
+	
+	private void updateAlgorithmButtonLabel(int algo) {
+		switch (algo) {
+		case ClassifierFactory.SMO:
+				this.selectAlgoButton.setText("SMO");
+			break;
+		case ClassifierFactory.NAIVE_BAYES:
+				this.selectAlgoButton.setText("Naive Bayes");
+			break;
+		case ClassifierFactory.J48:
+				this.selectAlgoButton.setText("J48");
+			break;
+		}
+		
+		try {
+			stream.setClassifier(algoSelector.getCurrentAlgo());
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	private void setupMoodUpdater() {
 		this.liveMoodUpdater.scheduleWithFixedDelay(updateAction, 2 * 1000, moodMgr.getWindowSizeInMillis(), TimeUnit.MILLISECONDS);
 	}
 	
+	@SuppressWarnings("unused")
 	private void shutDownMoodUpdater() {
-		this.liveMoodUpdater.shutdown();
+		this.liveMoodUpdater.shutdownNow();
 	}
 	
 	private void setCurrentTweet(Tweet curTweet) {
 		this.currentTweet = curTweet;
-		view.setCurrentTweet(curTweet, twitterInstance);
-		
-		if (tweetDAO.getTweets().indexOf(curTweet) == 0) {
-			view.getPreviousButton().setEnabled(false);
+		try {
+			view.setCurrentTweet(curTweet, twitterInstance);
+			
+			if (tweetDAO.getTweets().indexOf(curTweet) == 0) {
+				view.getPreviousButton().setEnabled(false);
+			}
+			else if (tweetDAO.getTweets().indexOf(curTweet) == tweetDAO.getTweets().size() - 1) {
+				view.getNextButton().setEnabled(false);
+			}
+			else {
+				view.getPreviousButton().setEnabled(true);
+				view.getNextButton().setEnabled(true);
+			}
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(view, "<html>Twitter isn't letting people in at this time.<br/>" +
+					"Please run the application again at a later time.</html>");
+			ex.printStackTrace();
 		}
-		else if (tweetDAO.getTweets().indexOf(curTweet) == tweetDAO.getTweets().size() - 1) {
-			view.getNextButton().setEnabled(false);
-		}
-		else {
-			view.getPreviousButton().setEnabled(true);
-			view.getNextButton().setEnabled(true);
-		}
+	}
+	
+	private void setCurrentTweet(Tweet curTweet, TokenizedTweet tokens) {
+		view.setCurrentTweet(curTweet, twitterInstance, new ArrayList<String>(tokens.getSetOfTokens()));
 	}
 	
 	public static void run() {

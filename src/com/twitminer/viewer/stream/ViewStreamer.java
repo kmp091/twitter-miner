@@ -1,5 +1,6 @@
 package com.twitminer.viewer.stream;
 
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -14,7 +15,9 @@ import com.twitminer.dao.DAOFactory;
 import com.twitminer.dao.EmotionDAO;
 import com.twitminer.dao.TweetDAO;
 import com.twitminer.stream.Streamer;
+import com.twitminer.util.TweetAndTokens;
 import com.twitminer.util.TweetCleaner;
+import com.twitminer.viewer.algorithm.Classifier;
 import com.twitminer.viewer.algorithm.ClassifierFactory;
 
 import twitter4j.Status;
@@ -26,8 +29,9 @@ public class ViewStreamer extends Streamer {
 	private TweetDAO tweetDAO;
 	private EmotionDAO emotionDAO;
 	private List<ChangeListener> listeners;
+	private Classifier classifier;	
 	
-	public ViewStreamer(String consumerKey, String consumerSecret, AccessToken token, TweetDAO tweetStorage, EmotionDAO emotionStorage, TweetCleaner tweetCleaner) {
+	public ViewStreamer(String consumerKey, String consumerSecret, AccessToken token, TweetDAO tweetStorage, EmotionDAO emotionStorage, TweetCleaner tweetCleaner, int algorithm) {
 		super(consumerKey, consumerSecret, token);
 		
 		if (tweetCleaner == null) {
@@ -52,6 +56,16 @@ public class ViewStreamer extends Streamer {
 		}
 		
 		this.listeners = new ArrayList<ChangeListener>();
+		
+		try {
+			this.classifier = ClassifierFactory.getInstance(algorithm, emotionDAO);
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	@Override
@@ -72,13 +86,19 @@ public class ViewStreamer extends Streamer {
 			TokenizedTweet tokenizedTweet = new TokenizedTweet(tokens);
 			
 			//classification code
-			Emotion emotion = ClassifierFactory.getInstance(emotionDAO).classifyEmotion(tokenizedTweet);
+			Emotion emotion = null;
+			try {
+				emotion = classifier.classifyEmotion(tokenizedTweet);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		
 			toBeStored.setEmotionId(emotion.getEmotionId());
 			
 			tweetDAO.insertTweet(toBeStored);
 			
-			this.fireOnChange(toBeStored);
+			this.fireOnChange(toBeStored, tokenizedTweet);
 		}
 		
 		return true;
@@ -96,9 +116,13 @@ public class ViewStreamer extends Streamer {
 		listeners.remove(listener);
 	}
 	
-	protected void fireOnChange(Tweet status) {
+	public void setClassifier(int algorithm) throws URISyntaxException, Exception {
+		this.classifier = ClassifierFactory.getInstance(algorithm, emotionDAO);
+	}
+	
+	protected void fireOnChange(Tweet status, TokenizedTweet statusTokens) {
 		for (ChangeListener listener : listeners) {
-			listener.stateChanged(new ChangeEvent(status));
+			listener.stateChanged(new ChangeEvent(new TweetAndTokens(status, statusTokens)));
 		}
 	}
 

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
+import com.twitminer.beans.Emotion;
 import com.twitminer.beans.TokenizedTweet;
 import com.twitminer.dao.EmotionDAO;
 
@@ -45,6 +46,17 @@ public abstract class TestSetSaver extends Saver {
 		
 		FileWriter writer = new FileWriter(savedFile);
 		saveOutput(writer, tweets, wordBag, emotion);
+		System.out.println("Closing writer.");
+		writer.close();
+		System.out.println("Save success.");
+	}
+	
+	protected void onConfirmSave(File saveFile, List<TokenizedTweet> tweets, Emotion emotion) throws IOException {
+		Set<String> wordBag = getBagOfWords();
+		System.out.println("Bag of words: {" + commafyCollection(wordBag) + "}");
+		
+		FileWriter writer = new FileWriter(saveFile);
+		saveSingleClassOutput(writer, tweets, wordBag, emotion);
 		System.out.println("Closing writer.");
 		writer.close();
 		System.out.println("Save success.");

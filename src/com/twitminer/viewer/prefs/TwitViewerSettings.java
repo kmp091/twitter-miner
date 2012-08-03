@@ -10,7 +10,7 @@ public class TwitViewerSettings {
 	private static final String CHART_VISIBLE_KEY = "chartVisible";
 	
 	public static boolean getAutoScrollSetting() {
-		return prefs.getBoolean(AUTOSCROLL_KEY, false);
+		return prefs.getBoolean(AUTOSCROLL_KEY, true);
 	}
 	
 	public static boolean getChartVisibilitySetting() {

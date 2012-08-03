@@ -377,7 +377,8 @@ public class MainGUI {
 			saver.addSavedEventListener(listener);
 		}
 
-		saver.save(list, emotion);
+		saver.saveMultiple(list, emotion);
+//		saver.save(list, emotion);
 	}
 	
 	private void saveTestSetFormat(int format, Reader reader, List<TokenizedTweet> list, SavedEventListener listener) {
@@ -389,7 +390,8 @@ public class MainGUI {
 			saver.addSavedEventListener(listener);
 		}
 		
-		saver.save(list, emotion);
+		saver.saveMultiple(list, emotion);
+//		saver.save(list, emotion);
 	}
 
 }

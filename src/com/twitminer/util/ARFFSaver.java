@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import com.twitminer.beans.Emotion;
 import com.twitminer.beans.TokenizedTweet;
 import com.twitminer.dao.EmotionDAO;
 
@@ -80,6 +81,20 @@ public class ARFFSaver extends Saver {
 				writer.append('\n');
 			}
 		}
+	}
+
+	@Override
+	protected void writeHeader(Writer writer, List<TokenizedTweet> tweets,
+			Set<String> allWords, Emotion emotion) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void writePayload(Writer writer, List<TokenizedTweet> tweets,
+			Set<String> allWords, Emotion emotion) throws IOException {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

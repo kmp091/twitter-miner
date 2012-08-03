@@ -14,7 +14,10 @@ import com.twitminer.dao.EmotionDAO;
 import java.awt.Font;
 import java.awt.Component;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -32,6 +35,7 @@ public class TweetView extends JPanel {
 	private JLabel dateTimeLabel;
 	private JLabel lblMood;
 	private JLabel tweetTextLabel;
+	private JLabel lblTheTokensThat;
 	
 	/**
 	 * Create the panel.
@@ -71,6 +75,11 @@ public class TweetView extends JPanel {
 		tweetTextLabel.setMaximumSize(new Dimension(32767, 32767));
 		tweetContent.add(tweetTextLabel);
 		
+		lblTheTokensThat = new JLabel("The tokens that were actually taken can be seen here.");
+		lblTheTokensThat.setPreferredSize(new Dimension(337, 25));
+		lblTheTokensThat.setMaximumSize(new Dimension(32767, 200));
+		tweetContent.add(lblTheTokensThat);
+		
 		JPanel miscInfoPanel = new JPanel();
 		miscInfoPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 		miscInfoPanel.setPreferredSize(new Dimension(10, 16));
@@ -95,7 +104,7 @@ public class TweetView extends JPanel {
 	
 	public void setUserDetails(User user) {
 		if (user == null) {
-			this.userInfoLabel.setText(encloseHTML(encloseBold("Invalid user detected.")));
+			this.userInfoLabel.setText(encloseHTML(encloseBold("Cannot detect users at this time.")));
 			this.userIcon.setIcon(null);
 			return;
 		}
@@ -139,14 +148,42 @@ public class TweetView extends JPanel {
 	public void setDetails(Tweet tweet, Twitter twitterInstance) {
 		try {
 			this.setUserDetails(twitterInstance.showUser(tweet.getUserId()));
-			this.setMoodDetails(tweet.getEmotionId());
-			this.setTimeDetails(tweet.getDateCreated().getTime());
-			this.setTweetContent(tweet.getText());
 		}
 		catch (TwitterException tw) {
 			tw.printStackTrace();
 			this.setUserDetails(null);
 		}
+		finally {
+			this.setMoodDetails(tweet.getEmotionId());
+			this.setTimeDetails(tweet.getDateCreated().getTime());
+			this.setTweetContent(tweet.getText());
+		}
+	}
+	
+	public void setDetails(Tweet tweet, Twitter twitterInstance, List<String> tokens) {
+		this.setDetails(tweet, twitterInstance);
+		this.setTokensConsidered(tokens);
+	}
+	
+	public void setTokensConsidered(List<String> tokens) {
+		String tokenRep = commafyCollection(tokens);
+		
+		this.lblTheTokensThat.setText(encloseHTML(encloseBold("Words taken: ") + tokenRep));
+	}
+	
+	private String commafyCollection(Collection<String> tokens) {
+		StringBuilder sb = new StringBuilder();
+		Iterator<String> it = tokens.iterator();
+		
+		while (it.hasNext()) {
+			sb.append(it.next());
+			
+			if (it.hasNext()) {
+				sb.append(',');
+			}
+		}
+		
+		return sb.toString();
 	}
 	
 	private String encloseBold (String content) {

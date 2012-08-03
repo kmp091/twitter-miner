@@ -24,6 +24,7 @@ public class MoodView extends JPanel {
 	private ImageIcon sadIcon;
 	private ImageIcon disgustedIcon;
 	private ImageIcon surprisedIcon;
+	private ImageIcon unknownIcon;
 	
 	private JLabel lblMood;
 	
@@ -52,6 +53,7 @@ public class MoodView extends JPanel {
 		sadIcon = new ImageIcon(MoodView.class.getResource(ImageUtil.ROOT + "sad-face.png"));
 		disgustedIcon = new ImageIcon(MoodView.class.getResource(ImageUtil.ROOT + "disgusted-face.png"));
 		surprisedIcon = new ImageIcon(MoodView.class.getResource(ImageUtil.ROOT + "surprise-face.png"));
+		unknownIcon = new ImageIcon(MoodView.class.getResource(ImageUtil.ROOT + "unknown.png"));
 	}
 	
 	public void setMoodDisplay(int mood) {
@@ -72,6 +74,10 @@ public class MoodView extends JPanel {
 			this.lblMood.setIcon(surprisedIcon);
 			this.lblMood.setText("Surprised");
 			break;
+			default:
+				this.lblMood.setIcon(unknownIcon);
+				this.lblMood.setText("Unknown");
+				break;
 		}
 	}
 	

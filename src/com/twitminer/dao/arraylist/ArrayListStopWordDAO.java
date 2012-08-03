@@ -2535,7 +2535,18 @@ public class ArrayListStopWordDAO extends StopWordDAO {
 		tempStop.setStopWordId(629);
 		tempStop.setStopWord("zero");
 		stopWords.add(tempStop);
-		
+		tempStop = new StopWord();
+		tempStop.setStopWordId(630);
+		tempStop.setStopWord("harry");
+		stopWords.add(tempStop);
+		tempStop = new StopWord();
+		tempStop.setStopWordId(631);
+		tempStop.setStopWord("potter");
+		stopWords.add(tempStop);
+		tempStop = new StopWord();
+		tempStop.setStopWordId(632);
+		tempStop.setStopWord("filch");
+		stopWords.add(tempStop);
 		stopWords.trimToSize();
 	}
 	

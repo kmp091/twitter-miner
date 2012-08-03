@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import com.twitminer.beans.Emotion;
 import com.twitminer.beans.TokenizedTweet;
 import com.twitminer.dao.EmotionDAO;
 
@@ -66,6 +67,55 @@ public class CSVSaver2 extends Saver {
 				writer.append('\n');
 			}
 		}		
+	}
+
+	@Override
+	protected void writeHeader(Writer writer, List<TokenizedTweet> tweets,
+			Set<String> allWords, Emotion emotion) throws IOException {
+		writer.append("emotion-class").append(",");
+		
+		Iterator<String> allWordIterator = allWords.iterator();
+		while (allWordIterator.hasNext()) {
+			writer.append(allWordIterator.next());
+			
+			if (allWordIterator.hasNext()) {
+				writer.append(",");
+			}
+		}
+		
+		writer.append("\n");
+	}
+
+	@Override
+	protected void writePayload(Writer writer, List<TokenizedTweet> tweets,
+			Set<String> allWords, Emotion emotion) throws IOException {
+		Iterator<TokenizedTweet> tweetIterator = tweets.iterator();
+		while (tweetIterator.hasNext()) {
+			TokenizedTweet curTweet = tweetIterator.next();
+			
+			String emotionName = emotion.getEmotionName();
+			writer.append(emotionName).append(",");
+			
+			Iterator<String> allWordIterator = allWords.iterator();
+			while (allWordIterator.hasNext()) {
+				String masterWord = allWordIterator.next();
+				
+				if (curTweet.containsWord(masterWord)) {
+					writer.append('1');
+				}
+				else {
+					writer.append('0');
+				}
+				
+				if (allWordIterator.hasNext()) {
+					writer.append(',');
+				}
+			}
+			
+			if (tweetIterator.hasNext()) {
+				writer.append('\n');
+			}
+		}	
 	}
 	
 	/*private void preProcessTweets(List<Tweet> tweets) {

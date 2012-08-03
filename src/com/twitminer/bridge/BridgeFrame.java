@@ -43,7 +43,7 @@ public class BridgeFrame extends JFrame {
 		setMinimumSize(new Dimension(451, 303));
 		setTitle("TwitMiner Hub");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 451, 303);
+		setBounds(100, 100, 361, 303);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -93,5 +93,4 @@ public class BridgeFrame extends JFrame {
 		twitMonitorButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		contentPane.add(twitMonitorButton);
 	}
-
 }

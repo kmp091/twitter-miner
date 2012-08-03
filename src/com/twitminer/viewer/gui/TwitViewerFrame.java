@@ -27,6 +27,8 @@ import com.twitminer.dao.EmotionDAO;
 import java.awt.Cursor;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.List;
+
 import javax.swing.JLabel;
 import javax.swing.border.EtchedBorder;
 
@@ -130,9 +132,9 @@ public class TwitViewerFrame extends JFrame {
 				"<b>4.0</b> - " + emotions.getEmotionById(4).getEmotionName() + "</html>");
 		bottomView.add(legendLabel);
 		legendLabel.setMinimumSize(new Dimension(150, 20));
-		legendLabel.setPreferredSize(new Dimension(150, 70));
+		legendLabel.setPreferredSize(new Dimension(150, 80));
 		legendLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-		legendLabel.setMaximumSize(new Dimension(150, 168));
+		legendLabel.setMaximumSize(new Dimension(150, 200));
 		legendLabel.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
 	}
 	
@@ -191,7 +193,26 @@ public class TwitViewerFrame extends JFrame {
 					emotionString = "Unclassifiable";
 			}*/
 			
-			this.timeSeries.addOrUpdate(RegularTimePeriod.createInstance(Second.class, newTweetDate.getTime(), newTweetDate.getTimeZone()), emotionId);
+			int chartValue = -1;
+			
+			switch (emotionId) {
+			case EmotionDAO.HAPPY:
+				chartValue = EmotionDAO.HAPPY;
+				break;
+			case EmotionDAO.SAD:
+				chartValue = EmotionDAO.SAD;
+				break;
+			case EmotionDAO.DISGUST:
+				chartValue = EmotionDAO.DISGUST;
+				break;
+			case EmotionDAO.SURPRISE:
+				chartValue = EmotionDAO.SURPRISE;
+				break;
+				default:
+					chartValue = -1;
+			}
+			
+			this.timeSeries.addOrUpdate(RegularTimePeriod.createInstance(Second.class, newTweetDate.getTime(), newTweetDate.getTimeZone()), chartValue);
 //			this.emotionSeries.addValue(secondsSinceStart, "Predominant Mood", emotionString);
 		}
 		else {
@@ -205,6 +226,10 @@ public class TwitViewerFrame extends JFrame {
 	
 	public void setCurrentTweet(Tweet tweet, Twitter twitter) {
 		tweetViewer.setDetails(tweet, twitter);
+	}
+	
+	public void setCurrentTweet(Tweet tweet, Twitter twitter, List<String> tokens) {
+		tweetViewer.setDetails(tweet, twitter, tokens);
 	}
 	
 	public JButton getPreviousButton() {

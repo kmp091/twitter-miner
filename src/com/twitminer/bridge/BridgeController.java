@@ -4,6 +4,8 @@ import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.JButton;
+
 public class BridgeController {
 
 	BridgeFrame frame;
@@ -13,13 +15,64 @@ public class BridgeController {
 		setHandlers();
 	}
 	
+	private static final int MINER = 1;
+	private static final int VIEWER = 2;
+	private static final int WEKA = 3;
+	
+	private void runNewProcess(int app) {
+		String application;
+		final JButton button;
+		
+		switch(app) {
+		case MINER:
+			application = "com.twitminer.gui.MainGUI";
+			button = frame.getTwitMinerButton();
+			break;
+		case WEKA:
+			application = "weka.gui.GUIChooser";
+			button = frame.getWekaButton();
+			break;
+		case VIEWER:
+			default:
+				application = "com.twitminer.viewer.Initializer";
+				button = frame.getTwitMonitorButton();
+		}
+		
+		String classpath = System.getProperty("java.class.path");
+		String[] startOptions = {"java", "-Xmx900M", "-cp", classpath, application};
+		
+		try {
+			ProcessBuilder pb = new ProcessBuilder(startOptions);
+			final Process process = pb.start();
+			
+			new Thread(new Runnable() {
+
+				@Override
+				public void run() {
+					button.setEnabled(false);
+					try {
+						process.waitFor();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					finally {
+						button.setEnabled(true);
+					}
+				}
+				
+			}).start();
+		} catch (Exception e) {
+			System.err.println("Unable to run Twitminer");
+			e.printStackTrace();
+		}
+	}
+	
 	private void setHandlers() {
 		frame.getTwitMinerButton().addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				// TODO Auto-generated method stub
-				
+				runNewProcess(MINER);
 			}
 			
 		});
@@ -28,8 +81,7 @@ public class BridgeController {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				// TODO Auto-generated method stub
-				
+				runNewProcess(VIEWER);
 			}
 			
 		});
@@ -38,8 +90,7 @@ public class BridgeController {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				// TODO Auto-generated method stub
-				
+				runNewProcess(WEKA);
 			}
 			
 		});

@@ -13,19 +13,19 @@
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
-	<classpathentry kind="lib" path="/Users/kevinpanuelos/Documents/workspace/twitMiner/lib/mysql-connector-java-5.1.15-bin.jar"/>
-	<classpathentry kind="lib" path="/Users/kevinpanuelos/Documents/workspace/twitMiner/lib/twitter4j-async-2.2.5.jar"/>
-	<classpathentry kind="lib" path="/Users/kevinpanuelos/Documents/workspace/twitMiner/lib/twitter4j-core-2.2.5.jar"/>
-	<classpathentry kind="lib" path="/Users/kevinpanuelos/Documents/workspace/twitMiner/lib/twitter4j-stream-2.2.5.jar"/>
-	<classpathentry kind="lib" path="/Users/kevinpanuelos/Documents/workspace/twitMiner/lib/morphadorner.jar"/>
-	<classpathentry kind="lib" path="/Users/kevinpanuelos/Documents/workspace/twitMiner/lib/google-api-spelling-java-1.1-with-dependencies/dependencies/activation-1.1.jar"/>
-	<classpathentry kind="lib" path="/Users/kevinpanuelos/Documents/workspace/twitMiner/lib/google-api-spelling-java-1.1-with-dependencies/google-api-spelling-java-1.1.jar"/>
-	<classpathentry kind="lib" path="/Users/kevinpanuelos/Documents/workspace/twitMiner/lib/google-api-spelling-java-1.1-with-dependencies/dependencies/jaxb-api-2.1.jar"/>
-	<classpathentry kind="lib" path="/Users/kevinpanuelos/Documents/workspace/twitMiner/lib/google-api-spelling-java-1.1-with-dependencies/dependencies/jaxb-impl-2.1.5.jar"/>
-	<classpathentry kind="lib" path="/Users/kevinpanuelos/Documents/workspace/twitMiner/lib/google-api-spelling-java-1.1-with-dependencies/dependencies/log4j-1.2.14.jar"/>
-	<classpathentry kind="lib" path="/Users/kevinpanuelos/Documents/workspace/twitMiner/lib/google-api-spelling-java-1.1-with-dependencies/dependencies/stax-api-1.0-2.jar"/>
-	<classpathentry kind="lib" path="/Users/kevinpanuelos/Documents/workspace/twitMiner/lib/jcommon-1.0.17.jar"/>
-	<classpathentry kind="lib" path="/Users/kevinpanuelos/Documents/workspace/twitMiner/lib/jfreechart-1.0.14.jar"/>
-	<classpathentry kind="lib" path="/Users/kevinpanuelos/Documents/workspace/twitMiner/lib/weka.jar"/>
+	<classpathentry kind="lib" path="lib/twitter4j-stream-2.2.5.jar"/>
+	<classpathentry kind="lib" path="lib/twitter4j-core-2.2.5.jar"/>
+	<classpathentry kind="lib" path="lib/twitter4j-async-2.2.5.jar"/>
+	<classpathentry kind="lib" path="lib/morphadorner.jar"/>
+	<classpathentry kind="lib" path="lib/jfreechart-1.0.14.jar"/>
+	<classpathentry kind="lib" path="lib/google-api-spelling-java-1.1-with-dependencies/dependencies/activation-1.1.jar"/>
+	<classpathentry kind="lib" path="lib/google-api-spelling-java-1.1-with-dependencies/dependencies/jaxb-api-2.1.jar"/>
+	<classpathentry kind="lib" path="lib/google-api-spelling-java-1.1-with-dependencies/dependencies/jaxb-impl-2.1.5.jar"/>
+	<classpathentry kind="lib" path="lib/google-api-spelling-java-1.1-with-dependencies/dependencies/log4j-1.2.14.jar"/>
+	<classpathentry kind="lib" path="lib/google-api-spelling-java-1.1-with-dependencies/dependencies/stax-api-1.0-2.jar"/>
+	<classpathentry kind="lib" path="lib/google-api-spelling-java-1.1-with-dependencies/google-api-spelling-java-1.1.jar"/>
+	<classpathentry kind="lib" path="lib/jcommon-1.0.17.jar"/>
+	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.15-bin.jar"/>
+	<classpathentry kind="lib" path="lib/weka.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
