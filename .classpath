@@ -25,7 +25,6 @@
 	<classpathentry kind="lib" path="lib/google-api-spelling-java-1.1-with-dependencies/dependencies/stax-api-1.0-2.jar"/>
 	<classpathentry kind="lib" path="lib/google-api-spelling-java-1.1-with-dependencies/google-api-spelling-java-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/jcommon-1.0.17.jar"/>
-	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.15-bin.jar"/>
 	<classpathentry kind="lib" path="lib/weka.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
