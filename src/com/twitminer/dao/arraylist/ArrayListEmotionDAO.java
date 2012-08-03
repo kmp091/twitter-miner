@@ -13,19 +13,19 @@ public class ArrayListEmotionDAO extends EmotionDAO {
 		emotions = new ArrayList<Emotion>();
 		Emotion tempEmo;
 		tempEmo = new Emotion();
-		tempEmo.setEmotionId(1);
+		tempEmo.setEmotionId(4);
 		tempEmo.setEmotionName("Happy");
 		emotions.add(tempEmo);
 		tempEmo = new Emotion();
-		tempEmo.setEmotionId(2);
+		tempEmo.setEmotionId(1);
 		tempEmo.setEmotionName("Sad");
 		emotions.add(tempEmo);
 		tempEmo = new Emotion();
-		tempEmo.setEmotionId(3);
+		tempEmo.setEmotionId(2);
 		tempEmo.setEmotionName("Surprised");
 		emotions.add(tempEmo);
 		tempEmo = new Emotion();
-		tempEmo.setEmotionId(4);
+		tempEmo.setEmotionId(3);
 		tempEmo.setEmotionName("Disgusted");
 		emotions.add(tempEmo);
 		

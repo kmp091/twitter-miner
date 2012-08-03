@@ -349,8 +349,15 @@ public class TwitviewerController {
 	}
 	
 	public static void run() {
-		TwitviewerController twitviewer = new TwitviewerController();
-		twitviewer.view.setVisible(true);
+		try {
+			TwitviewerController twitviewer = new TwitviewerController();
+			twitviewer.view.setVisible(true);
+		}
+		catch (OutOfMemoryError err) {
+			JOptionPane.showMessageDialog(null, "<html>Please allocate the Java Virtual Machine with more memory.<br/>" +
+					"Please try running it from the command line using java -jar -Xmx900M TwitMonitor.jar<br/>" +
+					"The application will now terminate.</html>");
+		}
 	}
 	
 }

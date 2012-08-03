@@ -121,7 +121,8 @@ public class TwitViewerFrame extends JFrame {
 		chartPanel.setPreferredSize(new Dimension(300, 420));
 		bottomView.add(chartPanel);
 		
-		legendLabel = new JLabel("<html>Legend:<br/>" +
+		legendLabel = new JLabel("<html>" + "You can keep track of emotions from a positive to negative spectrum<br/><br/>" +
+				"Legend:<br/>" +
 				"<b>-1.0</b> - Initializing <br>" +
 				"<b>1.0</b> - " + emotions.getEmotionById(1).getEmotionName() + "<br/>" +
 				"<b>2.0</b> - " + emotions.getEmotionById(2).getEmotionName() + "<br/>" +

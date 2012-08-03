@@ -5,6 +5,6 @@ import com.twitminer.beans.TokenizedTweet;
 
 public interface Classifier {
 
-	public Emotion classifyEmotion(TokenizedTweet tokenizedTweet);
+	public Emotion classifyEmotion(TokenizedTweet tokenizedTweet) throws Exception;
 	
 }

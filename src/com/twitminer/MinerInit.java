@@ -35,7 +35,7 @@ public class MinerInit {
 	
 	private TokenizedTweetDAO tokenTweetDAO;
 	
-	public static final int MAX_TWEETS = 2500;
+	public static final int MAX_TWEETS = 100;
 	public static final String TOPIC = "Harry Potter";
 	
 	private int tweetCount;
